@@ -16,7 +16,8 @@ const (
 	CodeInternalError               = "INTERNAL_ERROR"
 
 	// Account
-	CodeAccountUsernameExisted = "USERNAME_EXISTED"
+	CodeUsernameExisted               = "USERNAME_EXISTED"
+	CodePasswordAndRetypeDoesNotMatch = "PASSWORD_AND_RETYPE_DOES_NOT_MATCH"
 
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"

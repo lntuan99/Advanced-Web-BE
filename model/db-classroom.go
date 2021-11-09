@@ -16,7 +16,7 @@ type Classroom struct {
 }
 
 type ClassroomRes struct {
-	ID            uint
+	ID            uint   `json:"id"`
 	Name          string `json:"name"`
 	CoverImageURL string `json:"coverImageUrl"`
 	Code          string `json:"code"`
