@@ -15,6 +15,9 @@ const (
 	CodeInvalidLanguage             = "INVALID_LANGUAGE"
 	CodeInternalError               = "INTERNAL_ERROR"
 
+	// Account
+	CodeAccountUsernameExisted = "USERNAME_EXISTED"
+
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
 	CodeExistedClassroomCode = "EXISTED_CLASSROOM_CODE"
