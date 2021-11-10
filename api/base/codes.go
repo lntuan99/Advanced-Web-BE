@@ -15,6 +15,10 @@ const (
 	CodeInvalidLanguage             = "INVALID_LANGUAGE"
 	CodeInternalError               = "INTERNAL_ERROR"
 
+	// Account
+	CodeUsernameExisted               = "USERNAME_EXISTED"
+	CodePasswordAndRetypeDoesNotMatch = "PASSWORD_AND_RETYPE_DOES_NOT_MATCH"
+
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
 	CodeExistedClassroomCode = "EXISTED_CLASSROOM_CODE"

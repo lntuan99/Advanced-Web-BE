@@ -92,7 +92,11 @@ func Initialize() {
 func _autoMigrateTables() {
     _ = DBInstance.AutoMigrate(
         // TODO: Migrate other library tables here !!!
+        &Account{},
+        &User{},
+        &UserRole{},
         &Classroom{},
+        &UserClassroomMapping{},
     )
 }
 
@@ -117,4 +121,7 @@ func _initializeTableConfig() {
     END;
 
     $func$ LANGUAGE plpgsql IMMUTABLE`)
+
+    User{}.InitializeTableConfig()
+    Classroom{}.InitializeTableConfig()
 }
