@@ -696,6 +696,7 @@ func HashingPassword(password string) (string, bool) {
 	}
 	return string(hashPassword), true
 }
+
 func CompareHashingPasswordAndPassWord(hashedPassword string, password string) bool {
 	biHashedPassword := []byte(hashedPassword)
 	biPassword := []byte(password)
