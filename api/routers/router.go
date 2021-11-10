@@ -2,6 +2,7 @@ package routers
 
 import (
     "advanced-web.hcmus/api/base"
+    api_account "advanced-web.hcmus/api/routers/api-account"
     api_classroom "advanced-web.hcmus/api/routers/api-classroom"
     api_status "advanced-web.hcmus/api/routers/api-status"
     "advanced-web.hcmus/config"
@@ -40,6 +41,11 @@ func Initialize() *gin.Engine {
     // Multipart quota
     r.MaxMultipartMemory = 20971520 // Exactly 20MB
     r.Static("/media", "./public")
+
+    accountRoute := routeVersion01.Group("account")
+    {
+        accountRoute.POST("/register", api_account.HandlerRegisterAccount)
+    }
 
     classroomRoute := routeVersion01.Group("classroom")
     {
