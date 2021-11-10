@@ -39,3 +39,25 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 
 	return true, base.CodeSuccess, nil
 }
+func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
+	var loginAccountInfo req_res.PostLoginAccount
+	if err := c.ShouldBindJSON(&loginAccountInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	existedUsername := model.Account{}.FindAccountByUsername(loginAccountInfo.Username)
+
+	if existedUsername.ID == 0 {
+		return false, base.CodeUsernameNotExisted, nil
+	}
+
+	loginAccountInfo.Password = util.StandardizedString(loginAccountInfo.Password)
+	if util.EmptyOrBlankString(loginAccountInfo.Password) {
+		return false, base.CodeEmptyPassword, nil
+	}
+	if !util.CompareHashingPasswordAndPassWord(existedUsername.Password, loginAccountInfo.Password) {
+		return false, base.CodeWrongPassword, nil
+	}
+
+	return true, base.CodeSuccess, nil
+}

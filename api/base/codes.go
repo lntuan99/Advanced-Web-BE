@@ -20,6 +20,8 @@ const (
 	CodeEmptyPassword                 = "EMPTY_PASSWORD"
 	CodePasswordAndRetypeDoesNotMatch = "PASSWORD_AND_RETYPE_DOES_NOT_MATCH"
 	CodeRegisterAccountFail           = "REGISTER_ACCOUNT_FAIL"
+	CodeWrongPassword                 = "WRONG_PASSWORD"
+	CodeUsernameNotExisted            = "USERNAME_NOT_EXISTED"
 
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
