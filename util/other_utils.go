@@ -1,8 +1,6 @@
 package util
 
 import (
-	"advanced-web.hcmus/config"
-	"advanced-web.hcmus/config/constants"
 	"bufio"
 	"bytes"
 	"crypto/sha256"
@@ -11,8 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize"
-	"golang.org/x/crypto/bcrypt"
 	"math"
 	"math/big"
 	"reflect"
@@ -24,6 +20,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"advanced-web.hcmus/config"
+	"advanced-web.hcmus/config/constants"
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/runes"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
@@ -695,6 +695,12 @@ func HashingPassword(password string) (string, bool) {
 		return "", false
 	}
 	return string(hashPassword), true
+}
+func CompareHashingPasswordAndPassWord(hashedPassword string, password string) bool {
+	biHashedPassword := []byte(hashedPassword)
+	biPassword := []byte(password)
+	err := bcrypt.CompareHashAndPassword(biHashedPassword, biPassword)
+	return err == nil
 }
 
 func RefineUIDDec(key string) string {
