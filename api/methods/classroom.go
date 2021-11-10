@@ -41,7 +41,7 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
     existedClassroomCode := model.Classroom{}.FindClassroomByCode(newClassroom.Code)
 
     if existedClassroomCode.ID > 0 {
-        return false, base.CodeExistedClassroomCode, nil
+        return false, base.CodeClassroomCodeExisted, nil
     }
 
     err := model.DBInstance.Create(&newClassroom).Error

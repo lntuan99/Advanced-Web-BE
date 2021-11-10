@@ -688,13 +688,13 @@ func GetNumberDayOfMonth(year, month int) int {
 	return lastDayOfMonth.Day()
 }
 
-func HashingPassword(password string) string {
+func HashingPassword(password string) (string, bool) {
 	bPassword := []byte(password)
 	hashPassword, err := bcrypt.GenerateFromPassword(bPassword, bcrypt.DefaultCost)
 	if err != nil {
-		panic(err)
+		return "", false
 	}
-	return string(hashPassword)
+	return string(hashPassword), true
 }
 
 func RefineUIDDec(key string) string {

@@ -17,9 +17,11 @@ const (
 
 	// Account
 	CodeUsernameExisted               = "USERNAME_EXISTED"
+	CodeEmptyPassword                 = "EMPTY_PASSWORD"
 	CodePasswordAndRetypeDoesNotMatch = "PASSWORD_AND_RETYPE_DOES_NOT_MATCH"
+	CodeRegisterAccountFail           = "REGISTER_ACCOUNT_FAIL"
 
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
-	CodeExistedClassroomCode = "EXISTED_CLASSROOM_CODE"
+	CodeClassroomCodeExisted = "EXISTED_CLASSROOM_CODE"
 )

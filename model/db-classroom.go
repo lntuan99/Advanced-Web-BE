@@ -41,7 +41,7 @@ func (classroom Classroom) ToRes() ClassroomRes {
 //============================================================
 //============================================================
 //============================================================
-func (classroom Classroom) InitializeTableConfig() {
+func (Classroom) InitializeTableConfig() {
 	// "gin" means: The column must be of tsvector type
 	DBInstance.Exec(`CREATE INDEX IF NOT EXISTS search_field
     ON classrooms USING
@@ -52,7 +52,7 @@ func (classroom Classroom) InitializeTableConfig() {
     USING gin (f_unaccent(name) gin_trgm_ops)`)
 }
 
-func (classroom Classroom) FindClassroomByCode(code string) Classroom {
+func (Classroom) FindClassroomByCode(code string) Classroom {
 	var res Classroom
 	DBInstance.First(&res, "code = ?", code)
 
