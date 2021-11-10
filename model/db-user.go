@@ -23,9 +23,17 @@ type User struct {
 	Gender       uint
 	Avatar       string
 	IdentityCard string
-	Classrooms []Classroom `gorm:"many2many:user_classroom_mappings"`
+	Enabled      bool
+	ExpiredAt    *time.Time
+	Classrooms   []Classroom `gorm:"many2many:user_classroom_mappings"`
 }
 
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
 func (user User) InitializeTableConfig() {
 	// "gin" means: The column must be of tsvector type
 	DBInstance.Exec(`CREATE INDEX IF NOT EXISTS search_field
@@ -35,4 +43,21 @@ func (user User) InitializeTableConfig() {
 	DBInstance.Exec(`CREATE INDEX IF NOT EXISTS user_name_idx 
     ON users
     USING gin (f_unaccent(name) gin_trgm_ops)`)
+}
+
+func (User) FindUserByID(ID uint) (existed bool, isExpired bool, user User) {
+	// Response: EXISTED_USER, IS_EXPIRED / DISABLED, USER INFO
+	user = User{}
+	DBInstance.
+		Where("id = ? ", ID).
+		First(&user)
+
+	if user.ID == 0 {
+		return false, false, user
+	} else {
+		if user.Enabled == false || (user.ExpiredAt != nil && user.ExpiredAt.Unix() <= time.Now().Unix()) {
+			return true, true, user
+		}
+		return true, false, user
+	}
 }
