@@ -67,7 +67,6 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		Token:     "",
 		ID:        0,
 		Name:      "",
-		RoleId:    0,
 		AvatarURL: "",
 	}
 
@@ -85,7 +84,6 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 	if claims["id"] == nil {
 		claims["id"] = user.ID
 	}
-	claims["roleId"] = user.UserRoleID
 	expire := mw.TimeFunc().Add(mw.Timeout)
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = mw.TimeFunc().Unix()
@@ -105,7 +103,6 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		Token:         tokenString,
 		ID:            user.ID,
 		Name:          user.Name,
-		RoleId:        user.UserRoleID,
 		AvatarURL:     avatarURL,
 	}
 

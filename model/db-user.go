@@ -13,8 +13,6 @@ const (
 
 type User struct {
 	gorm.Model
-	UserRoleID   uint
-	UserRole     UserRole
 	Name         string `gorm:"index:user_name_idx"`
 	Code         string `gorm:"index:user_code_unique_idx"`
 	Email        string `gorm:"index:user_email_unique_idx"`

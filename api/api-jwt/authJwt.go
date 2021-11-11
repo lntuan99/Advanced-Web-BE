@@ -328,25 +328,6 @@ func (mw *GinJWTMiddleware) middlewareImplUser(c *gin.Context) {
         claims := token.Claims.(jwt.MapClaims)
         id := mw.IdentityHandler(claims)
 
-        // Validate user role information
-        roleId := uint(util.ToInt(claims["roleId"]))
-        isValidRoleId := false
-        // ---
-        userRoleArray := make([]model.UserRole, 0)
-        model.DBInstance.Find(&userRoleArray)
-        // ---
-        for _, role := range userRoleArray {
-            if role.ID == roleId {
-                isValidRoleId = true
-                break
-            }
-        }
-        // ---
-        if isValidRoleId == false {
-            mw.unauthorized(c, http.StatusForbidden, mw.HTTPStatusMessageFunc(ErrForbidden, c))
-            return
-        }
-
         // Validate user id information
         idInUint, convertedErr := strconv.Atoi(fmt.Sprintf("%v", id))
         if convertedErr != nil {

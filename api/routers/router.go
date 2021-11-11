@@ -1,6 +1,7 @@
 package routers
 
 import (
+	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"os"
 
 	"advanced-web.hcmus/api/base"
@@ -37,6 +38,7 @@ func Initialize() *gin.Engine {
 
 	r.GET("/status", api_status.HandlerStatus)
 
+	authMiddleware := api_jwt.GwtAuthMiddleware
 	routeVersion01 := r.Group("api/v1")
 
 	// Multipart quota
@@ -51,6 +53,7 @@ func Initialize() *gin.Engine {
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
+	classroomRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		classroomRoute.GET("/", api_classroom.HandlerGetClassroomList)
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
