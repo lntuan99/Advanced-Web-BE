@@ -22,6 +22,8 @@ const (
 	CodeRegisterAccountFail           = "REGISTER_ACCOUNT_FAIL"
 	CodeWrongPassword                 = "WRONG_PASSWORD"
 	CodeUsernameNotExisted            = "USERNAME_NOT_EXISTED"
+	CodeExpiredUserAccount            = "EXPIRED_USER_ACCOUNT"
+	CodeLoginAccountFail              = "LOGIN_ACCOUNT_FAIL"
 
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
