@@ -1,8 +1,10 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"advanced-web.hcmus/util"
+	"github.com/jinzhu/gorm"
 )
 
 const (
@@ -24,6 +26,23 @@ type User struct {
 	Enabled      bool
 	ExpiredAt    *time.Time
 	Classrooms   []Classroom `gorm:"many2many:user_classroom_mappings"`
+}
+type UserInfor struct {
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	Code   string `json:"code"`
+	Avatar string `json:"avatar"`
+	Role   string `json:"role"`
+}
+
+func (user User) ToGetInfor(role string) UserInfor {
+	return UserInfor{
+		ID:     user.ID,
+		Name:   user.Name,
+		Code:   user.Code,
+		Avatar: util.SubUrlToFullUrl(user.Avatar),
+		Role:   role,
+	}
 }
 
 //============================================================
