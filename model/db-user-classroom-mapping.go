@@ -11,17 +11,3 @@ type UserClassroomMapping struct {
 	UserRoleID  uint `gorm:"unique_index:user_classroom_role_unique_idx"`
 	UserRole    UserRole
 }
-
-func (Classroom) FindUsersByIDClassroom(id string) ([]UserInfor, []UserInfor) {
-	var mappingArray = make([]UserClassroomMapping, 0)
-	DBInstance.First(&mappingArray, "ClassroomID = ?", id)
-	var students = make([]UserInfor, 0)
-	var teachers = make([]UserInfor, 0)
-	for _, classMapping := range mappingArray {
-		if classMapping.UserRole.Permission == "teacher" {
-			students = append(students, classMapping.User.ToGetInfor("teacher"))
-		}
-		teachers = append(teachers, classMapping.User.ToGetInfor("student"))
-	}
-	return students, teachers
-}

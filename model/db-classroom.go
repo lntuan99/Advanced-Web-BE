@@ -13,7 +13,8 @@ type Classroom struct {
 	Description       string
 	InviteTeacherLink string `gorm:"index:classroom_invite_teacher_link_idx"`
 	InviteStudentLink string `gorm:"index:classroom_invite_student_link_idx"`
-	Users             []User `gorm:"many2many:user_classroom_mappings"`
+	StudentArray      []User `gorm:"many2many:user_classroom_mappings"`
+	TeacherArray      []User `gorm:"many2many:user_classroom_mappings"`
 }
 
 type ClassroomRes struct {
@@ -61,8 +62,23 @@ func (Classroom) FindClassroomByCode(code string) Classroom {
 
 	return res
 }
+
 func (Classroom) FindClassroomByID(id string) Classroom {
 	var res Classroom
 	DBInstance.First(&res, id)
+
+	var mappingArray = make([]UserClassroomMapping, 0)
+	DBInstance.Find(&mappingArray, "classroom_id = ?", id)
+
+	for _, mapping := range mappingArray {
+		if mapping.UserRole.JWTType == JWT_TYPE_STUDENT {
+			res.StudentArray = append(res.StudentArray, mapping.User)
+		}
+
+		if mapping.UserRole.JWTType == JWT_TYPE_TEACHER {
+			res.TeacherArray = append(res.TeacherArray, mapping.User)
+		}
+	}
+
 	return res
 }
