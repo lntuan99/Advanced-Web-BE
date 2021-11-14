@@ -13,3 +13,10 @@ type UserRole struct {
 	Name       string `gorm:"index:user_role_name_idx"`
 	Permission string `gorm:"type:jsonb"`
 }
+
+func (UserRole) GetRoleByJWTType(JWTType uint) UserRole {
+	var res UserRole
+	DBInstance.First(&res, "jwt_type = ?", JWTType)
+
+	return res
+}

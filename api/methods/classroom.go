@@ -27,6 +27,9 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
     classroomID := util.ToUint(c.Param("id"))
     var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
 
+    classroom.StudentArray = classroom.GetListUserByJWTType(model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_STUDENT))
+    classroom.TeacherArray = classroom.GetListUserByJWTType(model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER))
+
     return true, base.CodeSuccess, classroom.ToRes()
 }
 

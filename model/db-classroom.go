@@ -81,21 +81,23 @@ func (Classroom) FindClassroomByID(id uint) Classroom {
 	var res Classroom
 	DBInstance.First(&res, id)
 
+	return res
+}
+
+func (classroom Classroom) GetListUserByJWTType(userRole UserRole) []User {
+	var userArray = make([]User, 0)
+
 	var mappingArray = make([]UserClassroomMapping, 0)
 	DBInstance.
 		Preload("User").
 		Preload("UserRole").
-		Find(&mappingArray, "classroom_id = ?", id)
+		Where("classroom_id = ?", classroom.ID).
+		Where("user_role_id = ?", userRole.ID).
+		Find(&mappingArray)
 
 	for _, mapping := range mappingArray {
-		if mapping.UserRole.JWTType == JWT_TYPE_STUDENT {
-			res.StudentArray = append(res.StudentArray, mapping.User)
-		}
-
-		if mapping.UserRole.JWTType == JWT_TYPE_TEACHER {
-			res.TeacherArray = append(res.TeacherArray, mapping.User)
-		}
+		userArray = append(userArray, mapping.User)
 	}
 
-	return res
+	return userArray
 }
