@@ -98,12 +98,11 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		avatarURL = util.SubUrlToFullUrl(avatarURL)
 	}
 
-
 	result = req_res.RespondUserLogin{
-		Token:         tokenString,
-		ID:            user.ID,
-		Name:          user.Name,
-		AvatarURL:     avatarURL,
+		Token:     tokenString,
+		ID:        user.ID,
+		Name:      user.Name,
+		AvatarURL: avatarURL,
 	}
 
 	return true, base.CodeSuccess, result

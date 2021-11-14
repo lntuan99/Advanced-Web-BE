@@ -27,7 +27,7 @@ type ClassroomRes struct {
 }
 
 func (classroom Classroom) ToRes() ClassroomRes {
-	return ClassroomRes {
+	return ClassroomRes{
 		ID:                classroom.ID,
 		Name:              classroom.Name,
 		CoverImageURL:     util.SubUrlToFullUrl(classroom.CoverImageURL),
@@ -59,5 +59,10 @@ func (Classroom) FindClassroomByCode(code string) Classroom {
 	var res Classroom
 	DBInstance.First(&res, "code = ?", code)
 
+	return res
+}
+func (Classroom) FindClassroomByID(id string) Classroom {
+	var res Classroom
+	DBInstance.First(&res, id)
 	return res
 }
