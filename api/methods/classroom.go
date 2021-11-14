@@ -13,7 +13,12 @@ import (
 
 func MethodGetClassroomList(c *gin.Context) (bool, string, interface{}) {
     var classroomArray = make([]model.Classroom, 0)
-    model.DBInstance.Find(&classroomArray)
+    model.DBInstance.
+        Order("id ASC").
+        Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
+        Limit(base.PageSizeLimit).
+        Preload("Owner").
+        Find(&classroomArray)
 
     var classroomResArray = make([]model.ClassroomRes, 0)
     for _, classroom := range classroomArray {
@@ -34,6 +39,9 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 }
 
 func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
+    userObj, _ := c.Get("user")
+    user := userObj.(model.User)
+
     _ = c.Request.ParseMultipartForm(20971520)
 
     var classroomInfo req_res.PostCreateClassroom
@@ -42,10 +50,15 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
     }
 
     var newClassroom = model.Classroom{
-        Name:          classroomInfo.Name,
-        CoverImageURL: "",
-        Code:          classroomInfo.Code,
-        Description:   classroomInfo.Description,
+        OwnerID:           user.ID,
+        Name:              classroomInfo.Name,
+        CoverImageURL:     "",
+        Code:              classroomInfo.Code,
+        Description:       classroomInfo.Description,
+
+        // TODO: Generate invite link
+        InviteTeacherLink: "",
+        InviteStudentLink: "",
     }
 
     existedClassroomCode := model.Classroom{}.FindClassroomByCode(newClassroom.Code)

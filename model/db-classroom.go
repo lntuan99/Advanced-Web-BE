@@ -7,6 +7,8 @@ import (
 
 type Classroom struct {
 	gorm.Model
+	OwnerID           uint
+	Owner             User
 	Name              string `gorm:"index:classroom_name_idx"`
 	CoverImageURL     string
 	Code              string `gorm:"index:classroom_code_idx"`
@@ -19,6 +21,7 @@ type Classroom struct {
 
 type ClassroomRes struct {
 	ID                uint      `json:"id"`
+	Owner             string    `json:"owner"`
 	Name              string    `json:"name"`
 	CoverImageURL     string    `json:"coverImageUrl"`
 	Code              string    `json:"code"`
@@ -40,8 +43,9 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		teacherResArray = append(teacherResArray, teacher.ToRes())
 	}
 
-	return ClassroomRes{
+	return ClassroomRes {
 		ID:                classroom.ID,
+		Owner:             classroom.Owner.Name,
 		Name:              classroom.Name,
 		CoverImageURL:     util.SubUrlToFullUrl(classroom.CoverImageURL),
 		Code:              classroom.Code,
@@ -79,7 +83,9 @@ func (Classroom) FindClassroomByCode(code string) Classroom {
 
 func (Classroom) FindClassroomByID(id uint) Classroom {
 	var res Classroom
-	DBInstance.First(&res, id)
+	DBInstance.
+		Preload("Owner").
+		First(&res, id)
 
 	return res
 }
