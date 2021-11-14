@@ -23,6 +23,13 @@ func MethodGetClassroomList(c *gin.Context) (bool, string, interface{}) {
     return true, base.CodeSuccess, classroomResArray
 }
 
+func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
+    classroomID := util.ToUint(c.Param("id"))
+    var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+    return true, base.CodeSuccess, classroom.ToRes()
+}
+
 func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
     _ = c.Request.ParseMultipartForm(20971520)
 

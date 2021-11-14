@@ -18,16 +18,28 @@ type Classroom struct {
 }
 
 type ClassroomRes struct {
-	ID                uint   `json:"id"`
-	Name              string `json:"name"`
-	CoverImageURL     string `json:"coverImageUrl"`
-	Code              string `json:"code"`
-	InviteTeacherLink string `json:"inviteTeacherLink"`
-	InviteStudentLink string `json:"inviteStudentLink"`
-	Description       string `json:"description"`
+	ID                uint      `json:"id"`
+	Name              string    `json:"name"`
+	CoverImageURL     string    `json:"coverImageUrl"`
+	Code              string    `json:"code"`
+	InviteTeacherLink string    `json:"inviteTeacherLink"`
+	InviteStudentLink string    `json:"inviteStudentLink"`
+	Description       string    `json:"description"`
+	StudentResArray   []UserRes `json:"studentArray"`
+	TeacherResArray   []UserRes `json:"teacherArray"`
 }
 
 func (classroom Classroom) ToRes() ClassroomRes {
+	var studentResArray = make([]UserRes, 0)
+	for _, student := range classroom.StudentArray {
+		studentResArray = append(studentResArray, student.ToRes())
+	}
+
+	var teacherResArray = make([]UserRes, 0)
+	for _, teacher := range classroom.TeacherArray {
+		teacherResArray = append(teacherResArray, teacher.ToRes())
+	}
+
 	return ClassroomRes{
 		ID:                classroom.ID,
 		Name:              classroom.Name,
@@ -36,6 +48,8 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		InviteTeacherLink: classroom.InviteTeacherLink,
 		InviteStudentLink: classroom.InviteStudentLink,
 		Description:       classroom.Description,
+		StudentResArray:   studentResArray,
+		TeacherResArray:   teacherResArray,
 	}
 }
 
@@ -63,12 +77,15 @@ func (Classroom) FindClassroomByCode(code string) Classroom {
 	return res
 }
 
-func (Classroom) FindClassroomByID(id string) Classroom {
+func (Classroom) FindClassroomByID(id uint) Classroom {
 	var res Classroom
 	DBInstance.First(&res, id)
 
 	var mappingArray = make([]UserClassroomMapping, 0)
-	DBInstance.Find(&mappingArray, "classroom_id = ?", id)
+	DBInstance.
+		Preload("User").
+		Preload("UserRole").
+		Find(&mappingArray, "classroom_id = ?", id)
 
 	for _, mapping := range mappingArray {
 		if mapping.UserRole.JWTType == JWT_TYPE_STUDENT {

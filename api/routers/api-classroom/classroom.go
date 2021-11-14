@@ -16,6 +16,16 @@ func HandlerGetClassroomList(c *gin.Context) {
 	}
 }
 
+func HandlerGetClassroomByID(c *gin.Context) {
+	success, status, data := methods.MethodGetClassroomByID(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
 func HandlerCreateClassroom(c *gin.Context) {
 	success, status, data := methods.MethodCreateClassroom(c)
 

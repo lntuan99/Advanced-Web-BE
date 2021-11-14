@@ -1,6 +1,8 @@
 package model
 
 import (
+	"advanced-web.hcmus/util"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -27,6 +29,40 @@ type User struct {
 	Classrooms   []Classroom `gorm:"many2many:user_classroom_mappings"`
 }
 
+type UserRes struct {
+	Name         string     `json:"name"`
+	Code         string     `json:"code"`
+	Email        string     `json:"email"`
+	Phone        string     `json:"phone"`
+	Birthday     int64      `json:"birthday"` //Unix
+	Gender       uint       `json:"gender"`
+	Avatar       string     `json:"avatar"`
+	IdentityCard string     `json:"identityCard"`
+	Enabled      bool       `json:"enabled"`
+	ExpiredAt    int64 `json:"expiredAt"`
+}
+
+func (user User) ToRes() UserRes {
+	expiredAt := int64(0)
+	if user.ExpiredAt != nil {
+		expiredAt = user.ExpiredAt.Unix()
+	}
+
+	fmt.Println(user.Birthday)
+
+	return UserRes{
+		Name:         user.Name,
+		Code:         user.Code,
+		Email:        user.Email,
+		Phone:        user.Phone,
+		Birthday:     user.Birthday.Unix(),
+		Gender:       user.Gender,
+		Avatar:       util.SubUrlToFullUrl(user.Avatar),
+		IdentityCard: user.IdentityCard,
+		Enabled:      user.Enabled,
+		ExpiredAt:    expiredAt,
+	}
+}
 //============================================================
 //============================================================
 //============================================================

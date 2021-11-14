@@ -56,6 +56,7 @@ func Initialize() *gin.Engine {
 	classroomRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		classroomRoute.GET("/", api_classroom.HandlerGetClassroomList)
+		classroomRoute.GET("/:id", api_classroom.HandlerGetClassroomByID)
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
 	}
 
