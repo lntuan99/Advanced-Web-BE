@@ -8,8 +8,8 @@ type PostRegisterAccount struct {
 	Code           string `form:"code" json:"code"`
 	Email          string `form:"email" json:"email"`
 	Phone          string `form:"phone" json:"phone"`
-	Birthday       string `form:"birthday" json:"birthday"`
-	Gender         string `form:"gender" json:"gender"`
+	Birthday       int64  `form:"birthday" json:"birthday"`
+	Gender         uint   `form:"gender" json:"gender"`
 	IdentityCard   string `form:"identityCard" json:"identityCard"`
 }
 

@@ -1,18 +1,16 @@
 package methods
 
 import (
-	"fmt"
-	"path/filepath"
-	"strconv"
-	"time"
-
 	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"path/filepath"
+	"time"
 )
 
 func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
@@ -20,12 +18,12 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 
 	_ = c.Request.ParseMultipartForm(20971520)
 
-	if err := c.ShouldBindJSON(&registerAccountInfo); err != nil {
+	if err := c.ShouldBind(&registerAccountInfo); err != nil {
 		return false, base.CodeBadRequest, nil
 	}
 
-	existedUsername := model.Account{}.FindAccountByUsername(registerAccountInfo.Username)
-	if existedUsername.ID > 0 {
+	existedAccountUsername := model.Account{}.FindAccountByUsername(registerAccountInfo.Username)
+	if existedAccountUsername.ID > 0 && existedAccountUsername.UserID > 0 {
 		return false, base.CodeUsernameExisted, nil
 	}
 
@@ -43,29 +41,42 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeRegisterAccountFail, nil
 	}
 
-	// if err := model.DBInstance.Create(&newAccount).Error; err != nil {
-	// 	return false, base.CodeRegisterAccountFail, nil
-	// }
-	gender := 0
-	if registerAccountInfo.Gender == "2" {
-		gender = model.GENDER_FEMALE
-	} else if registerAccountInfo.Gender == "1" {
-		gender = model.GENDER_MALE
-	} else {
-		gender = model.GENDER_UNKNOWN
+	newAccount.ID = existedAccountUsername.ID
+	if err := model.DBInstance.Save(&newAccount).Error; err != nil {
+		return false, base.CodeRegisterAccountFail, nil
 	}
 
-	var birthday time.Time
-	if registerAccountInfo.Birthday != "" {
-		tm, err := strconv.ParseInt(registerAccountInfo.Birthday, 10, 64)
-		if err != nil {
-			return false, base.CodeInvalidDate, nil
-		}
-		birthday = time.Unix(tm, 0)
+	if util.EmptyOrBlankString(registerAccountInfo.Name) {
+		return false, base.CodeNameOfUserEmpty, nil
 	}
 
+	existedCodeUser, isExpired, _ := model.User{}.FindUserByCode(registerAccountInfo.Code)
+	if existedCodeUser && !isExpired{
+		return false, base.CodeUserCodeExisted, nil
+	}
+
+	if util.EmptyOrBlankString(registerAccountInfo.Email) {
+		return false, base.CodeEmptyEmail, nil
+	}
 	if !util.IsEmailValid(registerAccountInfo.Email) {
 		return false, base.CodeInvalidEmailFormat, nil
+	}
+	existedEmailUser, isExpired, _ := model.User{}.FindUserByEmail(registerAccountInfo.Email)
+	if existedEmailUser && !isExpired {
+		return false, base.CodeEmailExisted, nil
+	}
+
+	registerAccountInfo.Phone = util.FormatPhoneNumber(registerAccountInfo.Phone)
+	existedPhoneUser, isExpired, _ := model.User{}.FindUserByPhone(registerAccountInfo.Phone)
+	if existedPhoneUser && !isExpired{
+		return false, base.CodePhoneExisted, nil
+	}
+
+	if !util.EmptyOrBlankString(registerAccountInfo.IdentityCard) {
+		existedIdentityCardUser, isExpired, _ := model.User{}.FindUserByIdentityCard(registerAccountInfo.IdentityCard)
+		if existedIdentityCardUser && !isExpired{
+			return false, base.CodeIdentityCardExisted, nil
+		}
 	}
 
 	var newUser = model.User{
@@ -73,15 +84,20 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		Code:         registerAccountInfo.Code,
 		Email:        registerAccountInfo.Email,
 		Phone:        registerAccountInfo.Phone,
-		Gender:       uint(gender),
-		Birthday:     birthday,
+		Gender:       registerAccountInfo.Gender,
+		Birthday:     time.Unix(registerAccountInfo.Birthday, 0),
 		IdentityCard: registerAccountInfo.IdentityCard,
 		Enabled:      true,
+		ExpiredAt:    nil,
 	}
+
 	if err := model.DBInstance.Create(&newUser).Error; err != nil {
 		return false, base.CodeRegisterAccountFail, nil
 	}
-	model.DBInstance.Model(&newAccount).Update("user_id", newUser.ID)
+
+	model.DBInstance.
+		Model(&newAccount).
+		Update("user_id", newUser.ID)
 
 	// FormFile returns the first file for the given key `avatar`
 	_, header, errFile := c.Request.FormFile("avatar")
@@ -98,7 +114,9 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 				Update("avatar", fileDst)
 		}
 	}
-	return true, base.CodeSuccess, nil
+
+	userLogin := generateUserToken(newUser)
+	return true, base.CodeSuccess, userLogin
 }
 
 func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
@@ -122,7 +140,7 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeWrongPassword, nil
 	}
 
-	result := req_res.RespondUserLogin{
+	userLogin := req_res.RespondUserLogin{
 		Token:     "",
 		ID:        0,
 		Name:      "",
@@ -131,7 +149,20 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 
 	_, isExpired, user := model.User{}.FindUserByID(existedUsername.UserID)
 	if isExpired {
-		return false, base.CodeExpiredUserAccount, result
+		return false, base.CodeExpiredUserAccount, userLogin
+	}
+
+	userLogin = generateUserToken(user)
+
+	return true, base.CodeSuccess, userLogin
+}
+
+func generateUserToken(user model.User) req_res.RespondUserLogin {
+	result := req_res.RespondUserLogin{
+		Token:     "",
+		ID:        0,
+		Name:      "",
+		AvatarURL: "",
 	}
 
 	mw := api_jwt.GwtAuthMiddleware
@@ -149,7 +180,7 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 	tokenString, err := mw.SignedString(token)
 
 	if err != nil {
-		return false, base.CodeLoginAccountFail, result
+		return result
 	}
 
 	avatarURL := ""
@@ -164,5 +195,5 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		AvatarURL: avatarURL,
 	}
 
-	return true, base.CodeSuccess, result
+	return result
 }
