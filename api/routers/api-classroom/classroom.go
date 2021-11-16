@@ -16,6 +16,26 @@ func HandlerGetClassroomList(c *gin.Context) {
 	}
 }
 
+func HandlerGetListClassroomByJWTType(c *gin.Context) {
+	success, status, data := methods.GetListClassroomByJWTType(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
+func HandlerGetListClassroomOwnedByUser(c *gin.Context) {
+	success, status, data := methods.GetListClassroomOwnedByUser(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
 func HandlerGetClassroomByID(c *gin.Context) {
 	success, status, data := methods.MethodGetClassroomByID(c)
 

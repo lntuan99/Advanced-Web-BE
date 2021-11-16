@@ -2,7 +2,6 @@ package routers
 
 import (
 	api_jwt "advanced-web.hcmus/api/api-jwt"
-	api_user "advanced-web.hcmus/api/routers/api-user"
 	"os"
 
 	"advanced-web.hcmus/api/base"
@@ -56,15 +55,15 @@ func Initialize() *gin.Engine {
 	userRoute := routeVersion01.Group("user")
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
-		userRoute.POST("/classroom/get-list-classroom-by-jwt-type", api_user.HandlerGetListClassroomByJWTType)
-		userRoute.GET("/classroom/get-list-classroom-by-jwt-type", api_user.HandlerGetListClassroomByJWTType)
-		userRoute.GET("/classroom/get-list-classroom-owned-by-user", api_user.HandlerGetListClassroomOwnedByUser)
+
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
 	classroomRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		classroomRoute.GET("/", api_classroom.HandlerGetClassroomList)
+		classroomRoute.GET("/get-list-classroom-by-jwt-type", api_classroom.HandlerGetListClassroomByJWTType)
+		classroomRoute.GET("/get-list-classroom-owned-by-user", api_classroom.HandlerGetListClassroomOwnedByUser)
 		classroomRoute.GET("/:id", api_classroom.HandlerGetClassroomByID)
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
 	}
