@@ -32,8 +32,12 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
     classroomID := util.ToUint(c.Param("id"))
     var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
 
-    classroom.StudentArray = classroom.GetListUserByJWTType(model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_STUDENT))
-    classroom.TeacherArray = classroom.GetListUserByJWTType(model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER))
+    if classroom.ID == 0 {
+        return false, base.CodeClassroomIDNotExisted, nil
+    }
+
+    classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+    classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
 
     return true, base.CodeSuccess, classroom.ToRes()
 }
@@ -49,23 +53,28 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
         return false, base.CodeBadRequest, nil
     }
 
-    var newClassroom = model.Classroom{
+    if util.EmptyOrBlankString(classroomInfo.Name) {
+        return false, base.CodeEmptyClassroomName, nil
+    }
+
+    if util.EmptyOrBlankString(classroomInfo.Code) {
+        return false, base.CodeEmptyClassroomCode, nil
+    }
+
+    existedClassroomCode := model.Classroom{}.FindClassroomByCodeBelongToOwner(classroomInfo.Code, user.ID)
+
+    if existedClassroomCode.ID > 0 {
+        return false, base.CodeClassroomCodeExisted, nil
+    }
+
+    var newClassroom = model.Classroom {
         OwnerID:           user.ID,
         Name:              classroomInfo.Name,
         CoverImageURL:     "",
         Code:              classroomInfo.Code,
         Description:       classroomInfo.Description,
-
-        // TODO: Generate invite link
-        InviteTeacherLink: "",
-        InviteStudentLink: "",
     }
-
-    existedClassroomCode := model.Classroom{}.FindClassroomByCode(newClassroom.Code)
-
-    if existedClassroomCode.ID > 0 {
-        return false, base.CodeClassroomCodeExisted, nil
-    }
+    newClassroom.GenerateInviteLink()
 
     err := model.DBInstance.Create(&newClassroom).Error
 
@@ -87,6 +96,14 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
                 Update("cover_image_url", fileDst)
         }
     }
+
+    // Temp: Set owner to teacher of class
+    var newMapping = model.UserClassroomMapping{
+        ClassroomID: newClassroom.ID,
+        UserID:      user.ID,
+        UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
+    }
+    model.DBInstance.Create(&newMapping)
 
     return true, base.CodeSuccess, nil
 }

@@ -32,6 +32,9 @@ const (
 	CodeIdentityCardExisted           = "IDENTITY_CARD_EXISTED"
 
 	// Classroom
-	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"
-	CodeClassroomCodeExisted = "EXISTED_CLASSROOM_CODE"
+	CodeCreateClassroomFail   = "CREATE_CLASSROOM_FAIL"
+	CodeClassroomCodeExisted  = "EXISTED_CLASSROOM_CODE"
+	CodeClassroomIDNotExisted = "CLASSROOM_ID_NOT_EXISTED"
+	CodeEmptyClassroomCode    = "CLASSROOM_CODE_EMPTY"
+	CodeEmptyClassroomName    = "CLASSROOM_NAME_EMPTY"
 )

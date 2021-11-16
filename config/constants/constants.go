@@ -32,6 +32,9 @@ const (
     Action_OpenCardList           = "LIBRARY_OPEN_CARD_LIST"
     Action_OpenUrl                = "LIBRARY_OPEN_URL"
     Action_OpenUrlInApp           = "LIBRARY_OPEN_URL_INAPP"
+
+    // ------------------------------
+    PRIME_NUMBER_FOR_MOD = 995329
 )
 
 // =============================================================

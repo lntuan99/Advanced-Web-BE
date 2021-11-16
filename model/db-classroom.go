@@ -1,8 +1,16 @@
 package model
 
 import (
+	"advanced-web.hcmus/config/constants"
 	"advanced-web.hcmus/util"
+	"fmt"
 	"github.com/jinzhu/gorm"
+	"time"
+)
+
+const (
+	STUDENT_INVITE_LINK_PREFIX_DOMAIN = "/student/join/"
+	TEACHER_INVITE_LINK_PREFIX_DOMAIN = "/teacher/join/"
 )
 
 type Classroom struct {
@@ -81,6 +89,13 @@ func (Classroom) FindClassroomByCode(code string) Classroom {
 	return res
 }
 
+func (Classroom) FindClassroomByCodeBelongToOwner(code string, ownerID uint) Classroom {
+	var res Classroom
+	DBInstance.First(&res, "code = ? and owner_id = ?", code, ownerID)
+
+	return res
+}
+
 func (Classroom) FindClassroomByID(id uint) Classroom {
 	var res Classroom
 	DBInstance.
@@ -90,20 +105,37 @@ func (Classroom) FindClassroomByID(id uint) Classroom {
 	return res
 }
 
-func (classroom Classroom) GetListUserByJWTType(userRole UserRole) []User {
+func (classroom Classroom) GetListUserByJWTType(JWTType uint) []User {
+	var userRole = UserRole{}.GetRoleByJWTType(JWTType)
+
 	var userArray = make([]User, 0)
 
-	var mappingArray = make([]UserClassroomMapping, 0)
-	DBInstance.
-		Preload("User").
-		Preload("UserRole").
-		Where("classroom_id = ?", classroom.ID).
-		Where("user_role_id = ?", userRole.ID).
-		Find(&mappingArray)
+	if userRole.ID > 0 {
+		var mappingArray = make([]UserClassroomMapping, 0)
+		DBInstance.
+			Preload("User").
+			Preload("UserRole").
+			Where("classroom_id = ?", classroom.ID).
+			Where("user_role_id = ?", userRole.ID).
+			Find(&mappingArray)
 
-	for _, mapping := range mappingArray {
-		userArray = append(userArray, mapping.User)
+		for _, mapping := range mappingArray {
+			userArray = append(userArray, mapping.User)
+		}
 	}
 
 	return userArray
+}
+
+func (classroom *Classroom) GenerateInviteLink() {
+	inviteTeacherLink := fmt.Sprintf( "%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
+	inviteTeacherLink = util.HexSha256String([]byte(inviteTeacherLink))
+	inviteTeacherLink += fmt.Sprintf("%v", time.Now().Unix() % constants.PRIME_NUMBER_FOR_MOD)
+
+	inviteStudentLink := fmt.Sprintf( "%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
+	inviteStudentLink = util.HexSha256String([]byte(inviteStudentLink))
+	inviteStudentLink += fmt.Sprintf("%v", time.Now().Unix() % constants.PRIME_NUMBER_FOR_MOD)
+
+	classroom.InviteTeacherLink = inviteTeacherLink
+	classroom.InviteStudentLink = inviteStudentLink
 }
