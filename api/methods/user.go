@@ -42,6 +42,11 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 
 	// Check phone of user valid
 	updateUserProfileInfo.Phone = util.FormatPhoneNumber(updateUserProfileInfo.Phone)
+	phone := util.FormatPhoneNumber(updateUserProfileInfo.Phone)
+	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(updateUserProfileInfo.Phone){
+		return false, base.CodePhoneInvalid, nil
+	}
+	updateUserProfileInfo.Phone = phone
 	_, isExpired, existedPhoneUser := model.User{}.FindUserByPhone(updateUserProfileInfo.Phone)
 	if existedPhoneUser.ID > 0 && !isExpired && existedPhoneUser.ID != user.ID {
 		return false, base.CodePhoneExisted, nil

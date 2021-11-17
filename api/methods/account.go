@@ -72,7 +72,11 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	// Check phone of user valid
-	registerAccountInfo.Phone = util.FormatPhoneNumber(registerAccountInfo.Phone)
+	phone := util.FormatPhoneNumber(registerAccountInfo.Phone)
+	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(registerAccountInfo.Phone){
+		return false, base.CodePhoneInvalid, nil
+	}
+	registerAccountInfo.Phone = phone
 	existedPhoneUser, isExpired, _ := model.User{}.FindUserByPhone(registerAccountInfo.Phone)
 	if existedPhoneUser && !isExpired{
 		return false, base.CodePhoneExisted, nil

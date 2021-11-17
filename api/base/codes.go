@@ -14,6 +14,7 @@ const (
 	CodeInvalidEmailFormat          = "INVALID_EMAIL_FORMAT"
 	CodeInvalidLanguage             = "INVALID_LANGUAGE"
 	CodeInternalError               = "INTERNAL_ERROR"
+	CodePhoneInvalid                = "PHONE_INVALID"
 	CodePhoneExisted                = "PHONE_EXISTED"
 	CodeEmailExisted                = "EMAIL_EXISTED"
 	CodeEmptyEmail                  = "EMPTY_EMAIL"
