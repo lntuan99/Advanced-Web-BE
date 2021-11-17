@@ -14,19 +14,20 @@ import (
 )
 
 func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
-	var registerAccountInfo req_res.PostRegisterAccount
-
 	_ = c.Request.ParseMultipartForm(20971520)
 
+	var registerAccountInfo req_res.PostRegisterAccount
 	if err := c.ShouldBind(&registerAccountInfo); err != nil {
 		return false, base.CodeBadRequest, nil
 	}
 
+	// Check username valid
 	existedAccountUsername := model.Account{}.FindAccountByUsername(registerAccountInfo.Username)
 	if existedAccountUsername.ID > 0 && existedAccountUsername.UserID > 0 {
 		return false, base.CodeUsernameExisted, nil
 	}
 
+	// Check password valid
 	registerAccountInfo.Password = util.StandardizedString(registerAccountInfo.Password)
 	if util.EmptyOrBlankString(registerAccountInfo.Password) {
 		return false, base.CodeEmptyPassword, nil
@@ -41,7 +42,9 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeRegisterAccountFail, nil
 	}
 
+	// For case: account with username existed but this account dose not has user id
 	newAccount.ID = existedAccountUsername.ID
+
 	if err := model.DBInstance.Save(&newAccount).Error; err != nil {
 		return false, base.CodeRegisterAccountFail, nil
 	}
@@ -50,11 +53,13 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeNameOfUserEmpty, nil
 	}
 
+	// Check code of user valid
 	existedCodeUser, isExpired, _ := model.User{}.FindUserByCode(registerAccountInfo.Code)
 	if existedCodeUser && !isExpired{
 		return false, base.CodeUserCodeExisted, nil
 	}
 
+	// Check email of user valid
 	if util.EmptyOrBlankString(registerAccountInfo.Email) {
 		return false, base.CodeEmptyEmail, nil
 	}
@@ -66,12 +71,14 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeEmailExisted, nil
 	}
 
+	// Check phone of user valid
 	registerAccountInfo.Phone = util.FormatPhoneNumber(registerAccountInfo.Phone)
 	existedPhoneUser, isExpired, _ := model.User{}.FindUserByPhone(registerAccountInfo.Phone)
 	if existedPhoneUser && !isExpired{
 		return false, base.CodePhoneExisted, nil
 	}
 
+	// Check identity card of user valid
 	if !util.EmptyOrBlankString(registerAccountInfo.IdentityCard) {
 		existedIdentityCardUser, isExpired, _ := model.User{}.FindUserByIdentityCard(registerAccountInfo.IdentityCard)
 		if existedIdentityCardUser && !isExpired{
@@ -79,7 +86,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		}
 	}
 
-	var newUser = model.User{
+	var newUser = model.User {
 		Name:         registerAccountInfo.Name,
 		Code:         registerAccountInfo.Code,
 		Email:        registerAccountInfo.Email,

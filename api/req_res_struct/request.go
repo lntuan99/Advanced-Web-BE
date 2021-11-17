@@ -1,9 +1,6 @@
 package req_res
 
-type PostRegisterAccount struct {
-	Username       string `form:"username" json:"username"`
-	Password       string `form:"password" json:"password"`
-	RetypePassword string `form:"retypePassword" json:"retypePassword"`
+type PostCreateUpdateUserProfile struct {
 	Name           string `form:"name" json:"name"`
 	Code           string `form:"code" json:"code"`
 	Email          string `form:"email" json:"email"`
@@ -11,6 +8,13 @@ type PostRegisterAccount struct {
 	Birthday       int64  `form:"birthday" json:"birthday"`
 	Gender         uint   `form:"gender" json:"gender"`
 	IdentityCard   string `form:"identityCard" json:"identityCard"`
+}
+
+type PostRegisterAccount struct {
+	Username       string `form:"username" json:"username"`
+	Password       string `form:"password" json:"password"`
+	RetypePassword string `form:"retypePassword" json:"retypePassword"`
+	PostCreateUpdateUserProfile
 }
 
 type PostLoginAccount struct {

@@ -18,7 +18,7 @@ const (
 	CodeEmailExisted                = "EMAIL_EXISTED"
 	CodeEmptyEmail                  = "EMPTY_EMAIL"
 
-	// Account
+	// Account && User
 	CodeUsernameExisted               = "USERNAME_EXISTED"
 	CodeEmptyPassword                 = "EMPTY_PASSWORD"
 	CodePasswordAndRetypeDoesNotMatch = "PASSWORD_AND_RETYPE_DOES_NOT_MATCH"
@@ -30,6 +30,8 @@ const (
 	CodeLoginAccountFail              = "LOGIN_ACCOUNT_FAIL"
 	CodeNameOfUserEmpty               = "NAME_OF_USER_EMPTY"
 	CodeIdentityCardExisted           = "IDENTITY_CARD_EXISTED"
+	CodeUpdateUserProfileSuccess      = "UPDATE_USER_PROFILE_SUCCESS"
+	CodeUpdateUserProfileFail         = "UPDATE_USER_PROFILE_FAIL"
 
 	// Classroom
 	CodeCreateClassroomFail   = "CREATE_CLASSROOM_FAIL"
