@@ -2,6 +2,7 @@ package routers
 
 import (
 	api_jwt "advanced-web.hcmus/api/api-jwt"
+	api_user "advanced-web.hcmus/api/routers/api-user"
 	"os"
 
 	"advanced-web.hcmus/api/base"
@@ -49,13 +50,12 @@ func Initialize() *gin.Engine {
 	{
 		accountRoute.POST("/register", api_account.HandlerRegisterAccount)
 		accountRoute.POST("/login", api_account.HandlerLoginAccount)
-
 	}
 
 	userRoute := routeVersion01.Group("user")
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
-
+		userRoute.POST("/", api_user.HandlerUpdateUserProfile)
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")

@@ -90,7 +90,7 @@ func FormatPhoneNumber(s string) string {
 	} else {
 		result = "+84" + result
 	}
-	if len(result) < 10 {
+	if len(result) != 12 {
 		return ""
 	}
 	return result
