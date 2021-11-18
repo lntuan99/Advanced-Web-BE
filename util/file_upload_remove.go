@@ -76,7 +76,7 @@ func uploadFile(
 
     // ShortFileUrl for storing in tables of database.
     // FullFireUrl for viewing on app or web.
-    apiDomain := config.Config.Domain
+    apiDomain := config.Config.ApiDomain
     shortFileUrl := fmt.Sprintf("%s/%s", folderPath, hashFileName)
     fullFileUrl := fmt.Sprintf("%s/media%s", apiDomain, shortFileUrl)
     return hashFileName, shortFileUrl, fullFileUrl, nil

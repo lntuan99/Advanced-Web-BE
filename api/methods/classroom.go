@@ -124,12 +124,6 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
         return false, base.CodeEmptyClassroomCode, nil
     }
 
-    existedClassroomCode := model.Classroom{}.FindClassroomByCodeBelongToOwner(classroomInfo.Code, user.ID)
-
-    if existedClassroomCode.ID > 0 {
-        return false, base.CodeClassroomCodeExisted, nil
-    }
-
     var newClassroom = model.Classroom {
         OwnerID:           user.ID,
         Name:              classroomInfo.Name,
@@ -137,7 +131,7 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
         Code:              classroomInfo.Code,
         Description:       classroomInfo.Description,
     }
-    newClassroom.GenerateInviteLink()
+    newClassroom.GenerateInviteCode()
 
     err := model.DBInstance.Create(&newClassroom).Error
 
@@ -165,6 +159,46 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
         ClassroomID: newClassroom.ID,
         UserID:      user.ID,
         UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
+    }
+    model.DBInstance.Create(&newMapping)
+
+    return true, base.CodeSuccess, nil
+}
+
+func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {
+    userObj, _ := c.Get("user")
+    user := userObj.(model.User)
+
+    inviteCode := c.Query("code")
+
+    // Validate invite code
+    if util.EmptyOrBlankString(inviteCode) {
+        return false, base.CodeInvalidClassroomInviteCode, nil
+    }
+
+    existed, classroom, jwtType := model.Classroom{}.GetClassroomByInviteCode(inviteCode)
+    if !existed {
+        return false, base.CodeInvalidClassroomInviteCode, nil
+    }
+    fmt.Println(classroom)
+    // Check user already be a owner of class
+    if classroom.OwnerID == user.ID {
+        return false, base.CodeUserAlreadyOwnerOfClass, nil
+    }
+
+    // Check user existed in class
+    var existedMapping model.UserClassroomMapping
+    model.DBInstance.First(&existedMapping, "classroom_id = ? AND user_id = ?", classroom.ID, user.ID)
+
+    if existedMapping.ID > 0 {
+        return false, base.CodeUserAlreadyInClassroom, nil
+    }
+
+    // Create new mapping
+    var newMapping = model.UserClassroomMapping{
+        ClassroomID: classroom.ID,
+        UserID:      user.ID,
+        UserRoleID:  model.UserRole{}.GetRoleByJWTType(jwtType).ID,
     }
     model.DBInstance.Create(&newMapping)
 

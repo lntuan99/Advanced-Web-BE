@@ -21,8 +21,8 @@ type Classroom struct {
 	CoverImageURL     string
 	Code              string `gorm:"index:classroom_code_idx"`
 	Description       string
-	InviteTeacherLink string `gorm:"index:classroom_invite_teacher_link_idx"`
-	InviteStudentLink string `gorm:"index:classroom_invite_student_link_idx"`
+	InviteTeacherCode string `gorm:"index:classroom_invite_teacher_link_idx"`
+	InviteStudentCode string `gorm:"index:classroom_invite_student_link_idx"`
 	StudentArray      []User `gorm:"many2many:user_classroom_mappings"`
 	TeacherArray      []User `gorm:"many2many:user_classroom_mappings"`
 }
@@ -34,8 +34,8 @@ type ClassroomRes struct {
 	Name              string    `json:"name"`
 	CoverImageURL     string    `json:"coverImageUrl"`
 	Code              string    `json:"code"`
-	InviteTeacherLink string    `json:"inviteTeacherLink"`
-	InviteStudentLink string    `json:"inviteStudentLink"`
+	InviteTeacherCode string    `json:"inviteTeacherCode"`
+	InviteStudentCode string    `json:"inviteStudentCode"`
 	Description       string    `json:"description"`
 	StudentResArray   []UserRes `json:"studentArray"`
 	TeacherResArray   []UserRes `json:"teacherArray"`
@@ -59,8 +59,8 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		Name:              classroom.Name,
 		CoverImageURL:     util.SubUrlToFullUrl(classroom.CoverImageURL),
 		Code:              classroom.Code,
-		InviteTeacherLink: classroom.InviteTeacherLink,
-		InviteStudentLink: classroom.InviteStudentLink,
+		InviteTeacherCode: classroom.InviteTeacherCode,
+		InviteStudentCode: classroom.InviteStudentCode,
 		Description:       classroom.Description,
 		StudentResArray:   studentResArray,
 		TeacherResArray:   teacherResArray,
@@ -129,15 +129,33 @@ func (classroom Classroom) GetListUserByJWTType(JWTType uint) []User {
 	return userArray
 }
 
-func (classroom *Classroom) GenerateInviteLink() {
-	inviteTeacherLink := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
-	inviteTeacherLink = util.HexSha256String([]byte(inviteTeacherLink))
-	inviteTeacherLink += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
+func (classroom *Classroom) GenerateInviteCode() {
+	inviteTeacherCode := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
+	inviteTeacherCode = util.HexSha256String([]byte(inviteTeacherCode))
+	inviteTeacherCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
+	//inviteTeacherLink := fmt.Sprintf("%v/api/v1/classroom/join?code=%v", config.Config.ApiDomain, inviteTeacherCode)
 
-	inviteStudentLink := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
-	inviteStudentLink = util.HexSha256String([]byte(inviteStudentLink))
-	inviteStudentLink += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
+	inviteStudentCode := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
+	inviteStudentCode = util.HexSha256String([]byte(inviteStudentCode))
+	inviteStudentCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
+	//inviteStudentLink := fmt.Sprintf("%v/api/v1/classroom/join?code=%v", config.Config.ApiDomain, inviteStudentCode)
 
-	classroom.InviteTeacherLink = inviteTeacherLink
-	classroom.InviteStudentLink = inviteStudentLink
+	classroom.InviteTeacherCode = inviteTeacherCode
+	classroom.InviteStudentCode = inviteStudentCode
+}
+
+func (Classroom) GetClassroomByInviteCode(inviteCode string) (existed bool, classroom Classroom, jwtType uint) {
+	classroom = Classroom{}
+
+	DBInstance.First(&classroom, "invite_teacher_code = ?", inviteCode)
+	if classroom.ID > 0 {
+		return true, classroom, JWT_TYPE_TEACHER
+	}
+
+	DBInstance.First(&classroom, "invite_student_code = ?", inviteCode)
+	if classroom.ID > 0 {
+		return true, classroom, JWT_TYPE_STUDENT
+	}
+
+	return false, classroom, 0
 }

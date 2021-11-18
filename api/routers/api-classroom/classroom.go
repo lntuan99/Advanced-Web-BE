@@ -56,3 +56,13 @@ func HandlerCreateClassroom(c *gin.Context) {
 	}
 }
 
+func HandlerJoinClassroom(c *gin.Context) {
+	success, status, data := methods.MethodJoinClassroom(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+

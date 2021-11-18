@@ -66,6 +66,7 @@ func Initialize() *gin.Engine {
 		classroomRoute.GET("/get-list-classroom-owned-by-user", api_classroom.HandlerGetListClassroomOwnedByUser)
 		classroomRoute.GET("/:id", api_classroom.HandlerGetClassroomByID)
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
+		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
 	}
 
 	return r

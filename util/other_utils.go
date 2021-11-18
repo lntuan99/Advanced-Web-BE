@@ -45,7 +45,7 @@ func SubUrlToFullUrl(subUrl string) string {
 	if EmptyOrBlankString(subUrl) {
 		return ""
 	}
-	return config.Config.Domain + "/media" + subUrl
+	return config.Config.ApiDomain + "/media" + subUrl
 }
 
 func FormatNumberWithDelimiter(n int64) string {
