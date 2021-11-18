@@ -29,7 +29,8 @@ type Classroom struct {
 
 type ClassroomRes struct {
 	ID                uint      `json:"id"`
-	Owner             string    `json:"owner"`
+	OwnerName         string    `json:"ownerName"`
+	OwnerAvatar       string    `json:"ownerAvatar"`
 	Name              string    `json:"name"`
 	CoverImageURL     string    `json:"coverImageUrl"`
 	Code              string    `json:"code"`
@@ -51,9 +52,10 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		teacherResArray = append(teacherResArray, teacher.ToRes())
 	}
 
-	return ClassroomRes {
+	return ClassroomRes{
 		ID:                classroom.ID,
-		Owner:             classroom.Owner.Name,
+		OwnerName:         classroom.Owner.Name,
+		OwnerAvatar:       util.SubUrlToFullUrl(classroom.Owner.Avatar),
 		Name:              classroom.Name,
 		CoverImageURL:     util.SubUrlToFullUrl(classroom.CoverImageURL),
 		Code:              classroom.Code,
@@ -128,13 +130,13 @@ func (classroom Classroom) GetListUserByJWTType(JWTType uint) []User {
 }
 
 func (classroom *Classroom) GenerateInviteLink() {
-	inviteTeacherLink := fmt.Sprintf( "%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
+	inviteTeacherLink := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
 	inviteTeacherLink = util.HexSha256String([]byte(inviteTeacherLink))
-	inviteTeacherLink += fmt.Sprintf("%v", time.Now().Unix() % constants.PRIME_NUMBER_FOR_MOD)
+	inviteTeacherLink += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
 
-	inviteStudentLink := fmt.Sprintf( "%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
+	inviteStudentLink := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
 	inviteStudentLink = util.HexSha256String([]byte(inviteStudentLink))
-	inviteStudentLink += fmt.Sprintf("%v", time.Now().Unix() % constants.PRIME_NUMBER_FOR_MOD)
+	inviteStudentLink += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
 
 	classroom.InviteTeacherLink = inviteTeacherLink
 	classroom.InviteStudentLink = inviteStudentLink
