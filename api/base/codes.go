@@ -35,12 +35,13 @@ const (
 	CodeUpdateUserProfileFail         = "UPDATE_USER_PROFILE_FAIL"
 
 	// Classroom
-	CodeCreateClassroomFail        = "CREATE_CLASSROOM_FAIL"
-	CodeClassroomCodeExisted       = "EXISTED_CLASSROOM_CODE"
-	CodeClassroomIDNotExisted      = "CLASSROOM_ID_NOT_EXISTED"
-	CodeEmptyClassroomCode         = "CLASSROOM_CODE_EMPTY"
-	CodeEmptyClassroomName         = "CLASSROOM_NAME_EMPTY"
-	CodeInvalidClassroomInviteCode = "INVALID_CLASSROOM_INVITE_CODE"
-	CodeUserAlreadyInClassroom     = "USER_ALREADY_IN_CLASSROOM"
-	CodeUserAlreadyOwnerOfClass    = "USER_ALREADY_OWNER_OF_CLASSROOM"
+	CodeCreateClassroomFail                 = "CREATE_CLASSROOM_FAIL"
+	CodeClassroomCodeExisted                = "EXISTED_CLASSROOM_CODE"
+	CodeClassroomIDNotExisted               = "CLASSROOM_ID_NOT_EXISTED"
+	CodeEmptyClassroomCode                  = "CLASSROOM_CODE_EMPTY"
+	CodeEmptyClassroomName                  = "CLASSROOM_NAME_EMPTY"
+	CodeInvalidClassroomInviteCode          = "INVALID_CLASSROOM_INVITE_CODE"
+	CodeUserAlreadyInClassroom              = "USER_ALREADY_IN_CLASSROOM"
+	CodeUserAlreadyOwnerOfClass             = "USER_ALREADY_OWNER_OF_CLASSROOM"
+	CodeOnlyOwnerCanInviteMemberToClassroom = "ONLY_OWNER_CAN_INVITE_MEMBER_TO_CLASS"
 )

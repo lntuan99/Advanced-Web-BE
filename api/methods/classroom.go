@@ -131,7 +131,7 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
         Code:              classroomInfo.Code,
         Description:       classroomInfo.Description,
     }
-    newClassroom.GenerateInviteCode()
+    newClassroom.ClassroomGenerateInviteCode()
 
     err := model.DBInstance.Create(&newClassroom).Error
 
@@ -201,6 +201,44 @@ func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {
         UserRoleID:  model.UserRole{}.GetRoleByJWTType(jwtType).ID,
     }
     model.DBInstance.Create(&newMapping)
+
+    return true, base.CodeSuccess, nil
+}
+
+func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
+    userObj, _ := c.Get("user")
+    user := userObj.(model.User)
+
+    var inviteToClassroomInfo req_res.PostInviteToClassroom
+    if err := c.ShouldBindJSON(&inviteToClassroomInfo); err != nil {
+        return false, base.CodeBadRequest, nil
+    }
+
+    var classroom = model.Classroom{}.FindClassroomByID(inviteToClassroomInfo.ClassroomID)
+    if classroom.ID == 0 {
+        return false, base.CodeClassroomIDNotExisted, nil
+    }
+
+    if classroom.OwnerID != user.ID {
+        return false, base.CodeOnlyOwnerCanInviteMemberToClassroom, false
+    }
+
+    // If empty invite code => create new and save to database
+    if util.EmptyOrBlankString(classroom.InviteTeacherCode) {
+        classroom.InviteTeacherCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_TEACHER)
+    }
+    if util.EmptyOrBlankString(classroom.InviteStudentCode) {
+        classroom.InviteStudentCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_STUDENT)
+    }
+    model.DBInstance.Save(&classroom)
+
+    for _, teacherEmail := range inviteToClassroomInfo.TeacherEmailArray {
+        fmt.Println(teacherEmail)
+    }
+
+    for _, studentEmail := range inviteToClassroomInfo.StudentEmailArray {
+        fmt.Println(studentEmail)
+    }
 
     return true, base.CodeSuccess, nil
 }

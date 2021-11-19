@@ -67,6 +67,7 @@ func Initialize() *gin.Engine {
 		classroomRoute.GET("/:id", api_classroom.HandlerGetClassroomByID)
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
 		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
+		classroomRoute.POST("/invite", api_classroom.HandlerInviteToClassroom)
 	}
 
 	return r

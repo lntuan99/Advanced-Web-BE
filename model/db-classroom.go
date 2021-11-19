@@ -129,19 +129,17 @@ func (classroom Classroom) GetListUserByJWTType(JWTType uint) []User {
 	return userArray
 }
 
-func (classroom *Classroom) GenerateInviteCode() {
-	inviteTeacherCode := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_TEACHER, time.Now().Unix())
-	inviteTeacherCode = util.HexSha256String([]byte(inviteTeacherCode))
-	inviteTeacherCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
-	//inviteTeacherLink := fmt.Sprintf("%v/api/v1/classroom/join?code=%v", config.Config.ApiDomain, inviteTeacherCode)
+func (classroom *Classroom) ClassroomGenerateInviteCode() {
+	classroom.InviteTeacherCode = GenerateInviteCode(*classroom, JWT_TYPE_TEACHER)
+	classroom.InviteStudentCode = GenerateInviteCode(*classroom, JWT_TYPE_STUDENT)
+}
 
-	inviteStudentCode := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, JWT_TYPE_STUDENT, time.Now().Unix())
-	inviteStudentCode = util.HexSha256String([]byte(inviteStudentCode))
-	inviteStudentCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
-	//inviteStudentLink := fmt.Sprintf("%v/api/v1/classroom/join?code=%v", config.Config.ApiDomain, inviteStudentCode)
+func GenerateInviteCode(classroom Classroom, jwtType uint) string {
+	inviteCode := fmt.Sprintf("%v_%v_%v_%v", classroom.Code, classroom.OwnerID, jwtType, time.Now().Unix())
+	inviteCode = util.HexSha256String([]byte(inviteCode))
+	inviteCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
 
-	classroom.InviteTeacherCode = inviteTeacherCode
-	classroom.InviteStudentCode = inviteStudentCode
+	return inviteCode
 }
 
 func (Classroom) GetClassroomByInviteCode(inviteCode string) (existed bool, classroom Classroom, jwtType uint) {
