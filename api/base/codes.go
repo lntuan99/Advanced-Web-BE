@@ -30,6 +30,7 @@ const (
 	CodeLoginAccountFail              = "LOGIN_ACCOUNT_FAIL"
 	CodeNameOfUserEmpty               = "NAME_OF_USER_EMPTY"
 	CodeIdentityCardExisted           = "IDENTITY_CARD_EXISTED"
+	CodeGoogleIDNotExisted            = "GOOGLE_ID_NOT_EXISTED"
 
 	// Classroom
 	CodeCreateClassroomFail  = "CREATE_CLASSROOM_FAIL"

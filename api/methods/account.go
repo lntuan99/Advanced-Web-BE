@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"path/filepath"
 	"time"
 )
@@ -41,17 +42,12 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeRegisterAccountFail, nil
 	}
 
-	newAccount.ID = existedAccountUsername.ID
-	if err := model.DBInstance.Save(&newAccount).Error; err != nil {
-		return false, base.CodeRegisterAccountFail, nil
-	}
-
 	if util.EmptyOrBlankString(registerAccountInfo.Name) {
 		return false, base.CodeNameOfUserEmpty, nil
 	}
 
 	existedCodeUser, isExpired, _ := model.User{}.FindUserByCode(registerAccountInfo.Code)
-	if existedCodeUser && !isExpired{
+	if existedCodeUser && !isExpired {
 		return false, base.CodeUserCodeExisted, nil
 	}
 
@@ -68,13 +64,13 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 
 	registerAccountInfo.Phone = util.FormatPhoneNumber(registerAccountInfo.Phone)
 	existedPhoneUser, isExpired, _ := model.User{}.FindUserByPhone(registerAccountInfo.Phone)
-	if existedPhoneUser && !isExpired{
+	if existedPhoneUser && !isExpired {
 		return false, base.CodePhoneExisted, nil
 	}
 
 	if !util.EmptyOrBlankString(registerAccountInfo.IdentityCard) {
 		existedIdentityCardUser, isExpired, _ := model.User{}.FindUserByIdentityCard(registerAccountInfo.IdentityCard)
-		if existedIdentityCardUser && !isExpired{
+		if existedIdentityCardUser && !isExpired {
 			return false, base.CodeIdentityCardExisted, nil
 		}
 	}
@@ -91,28 +87,41 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		ExpiredAt:    nil,
 	}
 
-	if err := model.DBInstance.Create(&newUser).Error; err != nil {
-		return false, base.CodeRegisterAccountFail, nil
-	}
-
-	model.DBInstance.
-		Model(&newAccount).
-		Update("user_id", newUser.ID)
-
-	// FormFile returns the first file for the given key `avatar`
-	_, header, errFile := c.Request.FormFile("avatar")
-	if errFile == nil {
-		newFileName := fmt.Sprintf("%v%v", time.Now().Unix(), filepath.Ext(header.Filename))
-		folderDst := fmt.Sprintf("/system/users/%v", newUser.ID)
-
-		util.CreateFolder(folderDst)
-
-		fileDst := fmt.Sprintf("%v/%v", folderDst, newFileName)
-		if err := util.SaveUploadedFile(header, folderDst, newFileName); err == nil {
-			model.DBInstance.
-				Model(&newUser).
-				Update("avatar", fileDst)
+	code := base.CodeSuccess
+	err := model.DBInstance.Transaction(func(tx *gorm.DB) error {
+		if err1 := tx.Create(&newUser).Error; err1 != nil {
+			code = base.CodeRegisterAccountFail
+			return err1
 		}
+
+		// For case username existed but not user link with this account
+		newAccount.ID = existedAccountUsername.ID
+		newAccount.UserID = newUser.ID
+		if err1 := tx.Save(&newAccount).Error; err1 != nil {
+			code = base.CodeRegisterAccountFail
+			return err1
+		}
+
+		// FormFile returns the first file for the given key `avatar`
+		_, header, errFile := c.Request.FormFile("avatar")
+		if errFile == nil {
+			newFileName := fmt.Sprintf("%v%v", time.Now().Unix(), filepath.Ext(header.Filename))
+			folderDst := fmt.Sprintf("/system/users/%v", newUser.ID)
+
+			util.CreateFolder(folderDst)
+
+			fileDst := fmt.Sprintf("%v/%v", folderDst, newFileName)
+			if err := util.SaveUploadedFile(header, folderDst, newFileName); err == nil {
+				tx.Model(&newUser).
+					Update("avatar", fileDst)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, code, nil
 	}
 
 	userLogin := generateUserToken(newUser)
@@ -155,6 +164,34 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 	userLogin = generateUserToken(user)
 
 	return true, base.CodeSuccess, userLogin
+}
+
+func MethodGoogleLogin(c *gin.Context) (bool, string, interface{}) {
+	var googleLoginInfo req_res.PostGoogleLogin
+	if err := c.ShouldBindJSON(&googleLoginInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	existedGoogleID := model.Account{}.FindAccountByGoogleID(googleLoginInfo.GoogleID)
+	if existedGoogleID.ID > 0 {
+		userLogin := req_res.RespondUserLogin{
+			Token:     "",
+			ID:        0,
+			Name:      "",
+			AvatarURL: "",
+		}
+
+		_, isExpired, user := model.User{}.FindUserByID(existedGoogleID.UserID)
+		if isExpired {
+			return false, base.CodeExpiredUserAccount, userLogin
+		}
+
+		userLogin = generateUserToken(user)
+
+		return true, base.CodeSuccess, userLogin
+	}
+
+	return true, base.CodeGoogleIDNotExisted, nil
 }
 
 func generateUserToken(user model.User) req_res.RespondUserLogin {

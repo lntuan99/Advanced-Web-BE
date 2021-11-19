@@ -50,7 +50,7 @@ func Initialize() *gin.Engine {
 	{
 		accountRoute.POST("/register", api_account.HandlerRegisterAccount)
 		accountRoute.POST("/login", api_account.HandlerLoginAccount)
-
+		accountRoute.POST("/google-login", api_account.HandlerGoogleLogin)
 	}
 
 	userRoute := routeVersion01.Group("user")
