@@ -12,7 +12,7 @@ func NewGinJWTMiddleware() *GinJWTMiddleware {
         SigningAlgorithm: "RS512",
         PrivKeyFile:      "zzz/key",
         PubKeyFile:       "zzz/key.pub",
-        Timeout:          time.Hour * 24 * 30 * 12,
+        Timeout:          time.Hour * 24 * 7,
         MaxRefresh:       time.Hour,
         Authorizator: func(user interface{}, c *gin.Context) bool {
             if user == nil {
