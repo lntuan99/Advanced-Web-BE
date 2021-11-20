@@ -34,6 +34,7 @@ const (
 	CodeUpdateUserProfileSuccess      = "UPDATE_USER_PROFILE_SUCCESS"
 	CodeUpdateUserProfileFail         = "UPDATE_USER_PROFILE_FAIL"
 	CodeFindUserFail                  = "FIND_USER_FAIL"
+	CodeGoogleIDNotExisted            = "GOOGLE_ID_NOT_EXISTED"
 
 	// Classroom
 	CodeCreateClassroomFail        = "CREATE_CLASSROOM_FAIL"

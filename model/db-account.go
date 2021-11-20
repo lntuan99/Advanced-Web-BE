@@ -10,6 +10,7 @@ type Account struct {
 	gorm.Model
 	Username string `gorm:"index:account_user_name_idx"`
 	Password string
+	GoogleID string `gorm:"index:account_google_id_idx"`
 	UserID   uint
 	User     User
 }
@@ -23,6 +24,13 @@ type Account struct {
 func (Account) FindAccountByUsername(username string) Account {
 	var res Account
 	DBInstance.First(&res, "username = ?", username)
+
+	return res
+}
+
+func (Account) FindAccountByGoogleID(googleID string) Account {
+	var res Account
+	DBInstance.First(&res, "google_id = ?", googleID)
 
 	return res
 }

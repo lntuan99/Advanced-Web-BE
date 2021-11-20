@@ -51,13 +51,14 @@ func Initialize() *gin.Engine {
 	{
 		accountRoute.POST("/register", api_account.HandlerRegisterAccount)
 		accountRoute.POST("/login", api_account.HandlerLoginAccount)
+		accountRoute.POST("/google-login", api_account.HandlerGoogleLogin)
 	}
 
 	userRoute := routeVersion01.Group("user")
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
-		userRoute.POST("/", api_user.HandlerUpdateUserProfile)
 		userRoute.GET("/", api_user.HandlerGetUserProfile)
+		userRoute.POST("/", api_user.HandlerUpdateUserProfile)
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
