@@ -104,7 +104,9 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 
 	// Check user already in class
 	var mapping model.UserClassroomMapping
-	model.DBInstance.First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
+	model.DBInstance.
+		Preload("UserRole").
+		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
 	if mapping.ID == 0 {
 		return false, base.CodeBadRequest, nil
 	}
@@ -112,7 +114,10 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
 	classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
 
-	return true, base.CodeSuccess, classroom.ToRes()
+	classroomRes := classroom.ToRes()
+	classroomRes.JWTType = mapping.UserRole.JWTType
+
+	return true, base.CodeSuccess, classroomRes
 }
 
 func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {

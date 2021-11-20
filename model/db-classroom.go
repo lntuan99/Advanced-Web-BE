@@ -29,6 +29,7 @@ type Classroom struct {
 
 type ClassroomRes struct {
 	ID                uint      `json:"id"`
+	JWTType           uint      `json:"jwtType"`
 	OwnerName         string    `json:"ownerName"`
 	OwnerAvatar       string    `json:"ownerAvatar"`
 	Name              string    `json:"name"`
