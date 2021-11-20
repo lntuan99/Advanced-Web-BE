@@ -229,16 +229,11 @@ func generateUserToken(user model.User) req_res.RespondUserLogin {
 		return result
 	}
 
-	avatarURL := ""
-	if user.Avatar != "" {
-		avatarURL = util.SubUrlToFullUrl(avatarURL)
-	}
-
 	result = req_res.RespondUserLogin{
 		Token:     tokenString,
 		ID:        user.ID,
 		Name:      user.Name,
-		AvatarURL: avatarURL,
+		AvatarURL: util.SubUrlToFullUrl(user.Avatar),
 	}
 
 	return result
