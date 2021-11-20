@@ -1,14 +1,15 @@
 package methods
 
 import (
+	"fmt"
+	"path/filepath"
+	"time"
+
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"path/filepath"
-	"time"
 )
 
 func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
@@ -43,7 +44,7 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 	// Check phone of user valid
 	updateUserProfileInfo.Phone = util.FormatPhoneNumber(updateUserProfileInfo.Phone)
 	phone := util.FormatPhoneNumber(updateUserProfileInfo.Phone)
-	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(updateUserProfileInfo.Phone){
+	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(updateUserProfileInfo.Phone) {
 		return false, base.CodePhoneInvalid, nil
 	}
 	updateUserProfileInfo.Phone = phone
@@ -94,4 +95,17 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 	userLogin := generateUserToken(user)
 
 	return true, base.CodeUpdateUserProfileSuccess, userLogin
+}
+
+func MethodGetUserProfile(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	// Check user in database
+	_, isExpired, existedUser := model.User{}.FindUserByID(user.ID)
+	if existedUser.ID > 0 && !isExpired {
+		return true, base.CodeSuccess, user.ToRes()
+	}
+
+	return false, base.CodeFindUserFail, nil
 }

@@ -33,6 +33,7 @@ const (
 	CodeIdentityCardExisted           = "IDENTITY_CARD_EXISTED"
 	CodeUpdateUserProfileSuccess      = "UPDATE_USER_PROFILE_SUCCESS"
 	CodeUpdateUserProfileFail         = "UPDATE_USER_PROFILE_FAIL"
+	CodeFindUserFail                  = "FIND_USER_FAIL"
 
 	// Classroom
 	CodeCreateClassroomFail        = "CREATE_CLASSROOM_FAIL"
