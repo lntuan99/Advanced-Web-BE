@@ -23,6 +23,12 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeBadRequest, nil
 	}
 
+	// Check username valid
+	existedAccountUsername := model.Account{}.FindAccountByUsername(updateUserProfileInfo.Username)
+	if existedAccountUsername.ID > 0 && existedAccountUsername.UserID > 0 && existedAccountUsername.UserID != user.ID {
+		return false, base.CodeUsernameExisted, nil
+	}
+
 	// Check code of user valid
 	_, isExpired, existedCodeUser := model.User{}.FindUserByCode(updateUserProfileInfo.Code)
 	if existedCodeUser.ID > 0 && !isExpired && existedCodeUser.ID != user.ID {
@@ -66,6 +72,7 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 		birthday = time.Unix(updateUserProfileInfo.Birthday, 0)
 	}
 
+	existedAccountUsername.Username = updateUserProfileInfo.Username
 	user.Name = updateUserProfileInfo.Name
 	user.Code = updateUserProfileInfo.Code
 	user.Email = updateUserProfileInfo.Email

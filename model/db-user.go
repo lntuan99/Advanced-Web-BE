@@ -29,6 +29,7 @@ type User struct {
 }
 
 type UserRes struct {
+	Username     string `json:"username"`
 	Name         string `json:"name"`
 	Code         string `json:"code"`
 	Email        string `json:"email"`
@@ -47,7 +48,11 @@ func (user User) ToRes() UserRes {
 		expiredAt = user.ExpiredAt.Unix()
 	}
 
-	return UserRes{
+	var userAccount Account
+	DBInstance.First(&userAccount, "user_id = ?", user.ID)
+
+	return UserRes {
+		Username:     userAccount.Username,
 		Name:         user.Name,
 		Code:         user.Code,
 		Email:        user.Email,
@@ -95,7 +100,6 @@ func (user *User) BeforeSave(tx *gorm.DB) (err error) {
 	// ---
 	return nil
 }
-
 
 func (user User) InitializeTableConfig() {
 	// "gin" means: The column must be of tsvector type
