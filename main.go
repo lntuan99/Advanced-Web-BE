@@ -4,6 +4,7 @@ import (
     "advanced-web.hcmus/api/routers"
     "advanced-web.hcmus/config"
     "advanced-web.hcmus/model"
+    "advanced-web.hcmus/services/smtp"
     "fmt"
     "os"
     "os/signal"
@@ -19,6 +20,10 @@ func main() {
 
     // Initialize configs
     model.Initialize()
+    defer model.DBInstance.Close()
+
+    // Initialize smtp service
+    smtp.Initialize()
 
     go func() {
         r := routers.Initialize()
@@ -35,5 +40,4 @@ func main() {
 
     fmt.Println("=====================================================")
     fmt.Println("API Server has stopped!")
-    defer model.DBInstance.Close()
 }

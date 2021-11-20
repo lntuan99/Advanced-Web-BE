@@ -3,7 +3,9 @@ package methods
 import (
     "advanced-web.hcmus/api/base"
     req_res "advanced-web.hcmus/api/req_res_struct"
+    "advanced-web.hcmus/config"
     "advanced-web.hcmus/model"
+    "advanced-web.hcmus/services/smtp"
     "advanced-web.hcmus/util"
     "fmt"
     "github.com/gin-gonic/gin"
@@ -224,20 +226,44 @@ func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
     }
 
     // If empty invite code => create new and save to database
+    createNewCode := false
     if util.EmptyOrBlankString(classroom.InviteTeacherCode) {
+        createNewCode = true
         classroom.InviteTeacherCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_TEACHER)
     }
     if util.EmptyOrBlankString(classroom.InviteStudentCode) {
+        createNewCode = true
         classroom.InviteStudentCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_STUDENT)
     }
-    model.DBInstance.Save(&classroom)
 
-    for _, teacherEmail := range inviteToClassroomInfo.TeacherEmailArray {
-        fmt.Println(teacherEmail)
+    if createNewCode {
+        model.DBInstance.Save(&classroom)
     }
 
-    for _, studentEmail := range inviteToClassroomInfo.StudentEmailArray {
-        fmt.Println(studentEmail)
+    // Generate invite link
+    inviteTeacherLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteTeacherCode)
+    inviteStudentLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteStudentCode)
+
+    // Send invite teacher
+    type TemplateData struct {
+        URL string
+    }
+    teacherTemplateData := TemplateData {
+        URL: inviteTeacherLink,
+    }
+    studentTemplateData := TemplateData {
+        URL: inviteStudentLink,
+    }
+
+    r1 := smtp.NewRequest(inviteToClassroomInfo.TeacherEmailArray, "JOIN MY CLASS AS A TEACHER", "JOIN MY CLASS AS A TEACHER")
+    if err1 := r1.ParseTemplate("./public/assets/inviteTemplate.html", teacherTemplateData); err1 == nil {
+        r1.SendEmail()
+    }
+
+    // Send invite student
+    r2 := smtp.NewRequest(inviteToClassroomInfo.StudentEmailArray, "JOIN MY CLASS AS A STUDENT", "JOIN MY CLASS AS A STUDENT")
+    if err2 := r2.ParseTemplate("./public/assets/inviteTemplate.html", studentTemplateData); err2 == nil {
+        r2.SendEmail()
     }
 
     return true, base.CodeSuccess, nil
