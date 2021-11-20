@@ -30,6 +30,11 @@ func (Account) FindAccountByUsername(username string) Account {
 
 func (Account) FindAccountByGoogleID(googleID string) Account {
 	var res Account
+
+	if util.EmptyOrBlankString(googleID) {
+		return res
+	}
+
 	DBInstance.First(&res, "google_id = ?", googleID)
 
 	return res

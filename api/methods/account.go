@@ -200,7 +200,7 @@ func MethodGoogleLogin(c *gin.Context) (bool, string, interface{}) {
 		return true, base.CodeSuccess, userLogin
 	}
 
-	return true, base.CodeGoogleIDNotExisted, nil
+	return false, base.CodeGoogleIDNotExisted, nil
 }
 
 func generateUserToken(user model.User) req_res.RespondUserLogin {
