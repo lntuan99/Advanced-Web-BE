@@ -1,270 +1,278 @@
 package methods
 
 import (
-    "advanced-web.hcmus/api/base"
-    req_res "advanced-web.hcmus/api/req_res_struct"
-    "advanced-web.hcmus/config"
-    "advanced-web.hcmus/model"
-    "advanced-web.hcmus/services/smtp"
-    "advanced-web.hcmus/util"
-    "fmt"
-    "github.com/gin-gonic/gin"
-    "path/filepath"
-    "time"
+	"advanced-web.hcmus/api/base"
+	req_res "advanced-web.hcmus/api/req_res_struct"
+	"advanced-web.hcmus/config"
+	"advanced-web.hcmus/model"
+	"advanced-web.hcmus/services/smtp"
+	"advanced-web.hcmus/util"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"path/filepath"
+	"time"
 )
 
 func MethodGetClassroomList(c *gin.Context) (bool, string, interface{}) {
-    var classroomArray = make([]model.Classroom, 0)
-    model.DBInstance.
-        Order("id ASC").
-        Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
-        Limit(base.PageSizeLimit).
-        Preload("Owner").
-        Find(&classroomArray)
+	var classroomArray = make([]model.Classroom, 0)
+	model.DBInstance.
+		Order("id ASC").
+		Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
+		Limit(base.PageSizeLimit).
+		Preload("Owner").
+		Find(&classroomArray)
 
-    var classroomResArray = make([]model.ClassroomRes, 0)
-    for _, classroom := range classroomArray {
-        classroomResArray = append(classroomResArray, classroom.ToRes())
-    }
+	var classroomResArray = make([]model.ClassroomRes, 0)
+	for _, classroom := range classroomArray {
+		classroomResArray = append(classroomResArray, classroom.ToRes())
+	}
 
-    return true, base.CodeSuccess, classroomResArray
+	return true, base.CodeSuccess, classroomResArray
 }
 
-
 func GetListClassroomByJWTType(c *gin.Context) (bool, string, interface{}) {
-    userObj, _ := c.Get("user")
-    user := userObj.(model.User)
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    var mappingArray = make([]model.UserClassroomMapping, 0)
-    JWTType := util.ToUint(c.Query("jwt_type"))
-    userRole :=  model.UserRole{}.GetRoleByJWTType(uint(JWTType))
+	var mappingArray = make([]model.UserClassroomMapping, 0)
+	JWTType := util.ToUint(c.Query("jwt_type"))
+	userRole := model.UserRole{}.GetRoleByJWTType(uint(JWTType))
 
-    if userRole.ID == 0 {
-        model.DBInstance.
-            Order("id ASC").
-            Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
-            Limit(base.PageSizeLimit).
-            Preload("Classroom").
-            Preload("Classroom.Owner").
-            Where("user_id = ?", user.ID).
-            Find(&mappingArray)
-    }
+	if userRole.ID == 0 {
+		model.DBInstance.
+			Order("id ASC").
+			Offset(base.GetIntQuery(c, "page")*base.PageSizeLimit).
+			Limit(base.PageSizeLimit).
+			Preload("Classroom").
+			Preload("Classroom.Owner").
+			Where("user_id = ?", user.ID).
+			Find(&mappingArray)
+	}
 
-    if userRole.ID > 0 {
-        model.DBInstance.
-            Order("id ASC").
-            Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
-            Limit(base.PageSizeLimit).
-            Preload("Classroom").
-            Preload("Classroom.Owner").
-            Where("user_id = ?", user.ID).
-            Where("user_role_id = ?", userRole.ID).
-            Find(&mappingArray)
+	if userRole.ID > 0 {
+		model.DBInstance.
+			Order("id ASC").
+			Offset(base.GetIntQuery(c, "page")*base.PageSizeLimit).
+			Limit(base.PageSizeLimit).
+			Preload("Classroom").
+			Preload("Classroom.Owner").
+			Where("user_id = ?", user.ID).
+			Where("user_role_id = ?", userRole.ID).
+			Find(&mappingArray)
 
-    }
+	}
 
-    var classroomResArray = make([]model.ClassroomRes, 0)
-    for _, mapping := range mappingArray {
-        classroomResArray = append(classroomResArray, mapping.Classroom.ToRes())
-    }
+	var classroomResArray = make([]model.ClassroomRes, 0)
+	for _, mapping := range mappingArray {
+		classroomResArray = append(classroomResArray, mapping.Classroom.ToRes())
+	}
 
-    return true, base.CodeSuccess, classroomResArray
+	return true, base.CodeSuccess, classroomResArray
 }
 
 func GetListClassroomOwnedByUser(c *gin.Context) (bool, string, interface{}) {
-    userObj, _ := c.Get("user")
-    user := userObj.(model.User)
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    var classroomArray = make([]model.Classroom, 0)
-    model.DBInstance.
-        Order("id ASC").
-        Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
-        Limit(base.PageSizeLimit).
-        Where("owner_id = ?", user.ID).
-        Find(&classroomArray)
+	var classroomArray = make([]model.Classroom, 0)
+	model.DBInstance.
+		Order("id ASC").
+		Offset(base.GetIntQuery(c, "page")*base.PageSizeLimit).
+		Limit(base.PageSizeLimit).
+		Where("owner_id = ?", user.ID).
+		Find(&classroomArray)
 
-    var classroomResArray = make([]model.ClassroomRes, 0)
-    for _, classroom := range classroomArray {
-        classroom.Owner = user
-        classroomResArray = append(classroomResArray, classroom.ToRes())
-    }
+	var classroomResArray = make([]model.ClassroomRes, 0)
+	for _, classroom := range classroomArray {
+		classroom.Owner = user
+		classroomResArray = append(classroomResArray, classroom.ToRes())
+	}
 
-    return true, base.CodeSuccess, classroomResArray
+	return true, base.CodeSuccess, classroomResArray
 }
 
-
 func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
-    classroomID := util.ToUint(c.Param("id"))
-    var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    if classroom.ID == 0 {
-        return false, base.CodeClassroomIDNotExisted, nil
-    }
+	classroomID := util.ToUint(c.Param("id"))
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
 
-    classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
-    classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
 
-    return true, base.CodeSuccess, classroom.ToRes()
+	// Check user already in class
+	var mapping model.UserClassroomMapping
+	model.DBInstance.First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
+	if mapping.ID == 0 {
+		return false, base.CodeBadRequest, nil
+	}
+
+	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+	classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
+
+	return true, base.CodeSuccess, classroom.ToRes()
 }
 
 func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
-    userObj, _ := c.Get("user")
-    user := userObj.(model.User)
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    _ = c.Request.ParseMultipartForm(20971520)
+	_ = c.Request.ParseMultipartForm(20971520)
 
-    var classroomInfo req_res.PostCreateClassroom
-    if err := c.ShouldBind(&classroomInfo); err != nil {
-        return false, base.CodeBadRequest, nil
-    }
+	var classroomInfo req_res.PostCreateClassroom
+	if err := c.ShouldBind(&classroomInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
 
-    if util.EmptyOrBlankString(classroomInfo.Name) {
-        return false, base.CodeEmptyClassroomName, nil
-    }
+	if util.EmptyOrBlankString(classroomInfo.Name) {
+		return false, base.CodeEmptyClassroomName, nil
+	}
 
-    if util.EmptyOrBlankString(classroomInfo.Code) {
-        return false, base.CodeEmptyClassroomCode, nil
-    }
+	if util.EmptyOrBlankString(classroomInfo.Code) {
+		return false, base.CodeEmptyClassroomCode, nil
+	}
 
-    var newClassroom = model.Classroom {
-        OwnerID:           user.ID,
-        Name:              classroomInfo.Name,
-        CoverImageURL:     "",
-        Code:              classroomInfo.Code,
-        Description:       classroomInfo.Description,
-    }
-    newClassroom.ClassroomGenerateInviteCode()
+	var newClassroom = model.Classroom{
+		OwnerID:       user.ID,
+		Name:          classroomInfo.Name,
+		CoverImageURL: "",
+		Code:          classroomInfo.Code,
+		Description:   classroomInfo.Description,
+	}
+	newClassroom.ClassroomGenerateInviteCode()
 
-    err := model.DBInstance.Create(&newClassroom).Error
+	err := model.DBInstance.Create(&newClassroom).Error
 
-    if err != nil {
-        return false, base.CodeCreateClassroomFail, nil
-    }
+	if err != nil {
+		return false, base.CodeCreateClassroomFail, nil
+	}
 
-    _, header, errFile := c.Request.FormFile("coverImage")
-    if errFile == nil {
-        newFileName := fmt.Sprintf("%v%v", time.Now().Unix(), filepath.Ext(header.Filename))
-        folderDst := fmt.Sprintf("/system/classrooms/%v", newClassroom.ID)
+	_, header, errFile := c.Request.FormFile("coverImage")
+	if errFile == nil {
+		newFileName := fmt.Sprintf("%v%v", time.Now().Unix(), filepath.Ext(header.Filename))
+		folderDst := fmt.Sprintf("/system/classrooms/%v", newClassroom.ID)
 
-        util.CreateFolder(folderDst)
+		util.CreateFolder(folderDst)
 
-        fileDst := fmt.Sprintf("%v/%v", folderDst, newFileName)
-        if err := util.SaveUploadedFile(header, folderDst, newFileName); err == nil {
-            model.DBInstance.
-                Model(&newClassroom).
-                Update("cover_image_url", fileDst)
-        }
-    }
+		fileDst := fmt.Sprintf("%v/%v", folderDst, newFileName)
+		if err := util.SaveUploadedFile(header, folderDst, newFileName); err == nil {
+			model.DBInstance.
+				Model(&newClassroom).
+				Update("cover_image_url", fileDst)
+		}
+	}
 
-    // Temp: Set owner to teacher of class
-    var newMapping = model.UserClassroomMapping{
-        ClassroomID: newClassroom.ID,
-        UserID:      user.ID,
-        UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
-    }
-    model.DBInstance.Create(&newMapping)
+	// Temp: Set owner to teacher of class
+	var newMapping = model.UserClassroomMapping{
+		ClassroomID: newClassroom.ID,
+		UserID:      user.ID,
+		UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
+	}
+	model.DBInstance.Create(&newMapping)
 
-    return true, base.CodeSuccess, nil
+	return true, base.CodeSuccess, nil
 }
 
 func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {
-    userObj, _ := c.Get("user")
-    user := userObj.(model.User)
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    inviteCode := c.Query("code")
+	inviteCode := c.Query("code")
 
-    // Validate invite code
-    if util.EmptyOrBlankString(inviteCode) {
-        return false, base.CodeInvalidClassroomInviteCode, nil
-    }
+	// Validate invite code
+	if util.EmptyOrBlankString(inviteCode) {
+		return false, base.CodeInvalidClassroomInviteCode, nil
+	}
 
-    existed, classroom, jwtType := model.Classroom{}.GetClassroomByInviteCode(inviteCode)
-    if !existed {
-        return false, base.CodeInvalidClassroomInviteCode, nil
-    }
-    fmt.Println(classroom)
-    // Check user already be a owner of class
-    if classroom.OwnerID == user.ID {
-        return false, base.CodeUserAlreadyOwnerOfClass, nil
-    }
+	existed, classroom, jwtType := model.Classroom{}.GetClassroomByInviteCode(inviteCode)
+	if !existed {
+		return false, base.CodeInvalidClassroomInviteCode, nil
+	}
 
-    // Check user existed in class
-    var existedMapping model.UserClassroomMapping
-    model.DBInstance.First(&existedMapping, "classroom_id = ? AND user_id = ?", classroom.ID, user.ID)
+	// Check user already be a owner of class
+	if classroom.OwnerID == user.ID {
+		return false, base.CodeUserAlreadyOwnerOfClass, nil
+	}
 
-    if existedMapping.ID > 0 {
-        return false, base.CodeUserAlreadyInClassroom, nil
-    }
+	// Check user existed in class
+	var existedMapping model.UserClassroomMapping
+	model.DBInstance.First(&existedMapping, "classroom_id = ? AND user_id = ?", classroom.ID, user.ID)
 
-    // Create new mapping
-    var newMapping = model.UserClassroomMapping{
-        ClassroomID: classroom.ID,
-        UserID:      user.ID,
-        UserRoleID:  model.UserRole{}.GetRoleByJWTType(jwtType).ID,
-    }
-    model.DBInstance.Create(&newMapping)
+	if existedMapping.ID > 0 {
+		return false, base.CodeUserAlreadyInClassroom, nil
+	}
 
-    return true, base.CodeSuccess, nil
+	// Create new mapping
+	var newMapping = model.UserClassroomMapping{
+		ClassroomID: classroom.ID,
+		UserID:      user.ID,
+		UserRoleID:  model.UserRole{}.GetRoleByJWTType(jwtType).ID,
+	}
+	model.DBInstance.Create(&newMapping)
+
+	return true, base.CodeSuccess, nil
 }
 
 func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
-    userObj, _ := c.Get("user")
-    user := userObj.(model.User)
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
 
-    var inviteToClassroomInfo req_res.PostInviteToClassroom
-    if err := c.ShouldBindJSON(&inviteToClassroomInfo); err != nil {
-        return false, base.CodeBadRequest, nil
-    }
+	var inviteToClassroomInfo req_res.PostInviteToClassroom
+	if err := c.ShouldBindJSON(&inviteToClassroomInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
 
-    var classroom = model.Classroom{}.FindClassroomByID(inviteToClassroomInfo.ClassroomID)
-    if classroom.ID == 0 {
-        return false, base.CodeClassroomIDNotExisted, nil
-    }
+	var classroom = model.Classroom{}.FindClassroomByID(inviteToClassroomInfo.ClassroomID)
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
 
-    if classroom.OwnerID != user.ID {
-        return false, base.CodeOnlyOwnerCanInviteMemberToClassroom, false
-    }
+	if classroom.OwnerID != user.ID {
+		return false, base.CodeOnlyOwnerCanInviteMemberToClassroom, false
+	}
 
-    // If empty invite code => create new and save to database
-    createNewCode := false
-    if util.EmptyOrBlankString(classroom.InviteTeacherCode) {
-        createNewCode = true
-        classroom.InviteTeacherCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_TEACHER)
-    }
-    if util.EmptyOrBlankString(classroom.InviteStudentCode) {
-        createNewCode = true
-        classroom.InviteStudentCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_STUDENT)
-    }
+	// If empty invite code => create new and save to database
+	createNewCode := false
+	if util.EmptyOrBlankString(classroom.InviteTeacherCode) {
+		createNewCode = true
+		classroom.InviteTeacherCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_TEACHER)
+	}
+	if util.EmptyOrBlankString(classroom.InviteStudentCode) {
+		createNewCode = true
+		classroom.InviteStudentCode = model.GenerateInviteCode(classroom, model.JWT_TYPE_STUDENT)
+	}
 
-    if createNewCode {
-        model.DBInstance.Save(&classroom)
-    }
+	if createNewCode {
+		model.DBInstance.Save(&classroom)
+	}
 
-    // Generate invite link
-    inviteTeacherLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteTeacherCode)
-    inviteStudentLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteStudentCode)
+	// Generate invite link
+	inviteTeacherLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteTeacherCode)
+	inviteStudentLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteStudentCode)
 
-    // Send invite teacher
-    type TemplateData struct {
-        URL string
-    }
-    teacherTemplateData := TemplateData {
-        URL: inviteTeacherLink,
-    }
-    studentTemplateData := TemplateData {
-        URL: inviteStudentLink,
-    }
+	// Send invite teacher
+	type TemplateData struct {
+		URL string
+	}
+	teacherTemplateData := TemplateData{
+		URL: inviteTeacherLink,
+	}
+	studentTemplateData := TemplateData{
+		URL: inviteStudentLink,
+	}
 
-    r1 := smtp.NewRequest(inviteToClassroomInfo.TeacherEmailArray, "JOIN MY CLASS AS A TEACHER", "JOIN MY CLASS AS A TEACHER")
-    if err1 := r1.ParseTemplate("./public/assets/inviteTemplate.html", teacherTemplateData); err1 == nil {
-        r1.SendEmail()
-    }
+	r1 := smtp.NewRequest(inviteToClassroomInfo.TeacherEmailArray, "JOIN MY CLASS AS A TEACHER", "JOIN MY CLASS AS A TEACHER")
+	if err1 := r1.ParseTemplate("./public/assets/inviteTemplate.html", teacherTemplateData); err1 == nil {
+		r1.SendEmail()
+	}
 
-    // Send invite student
-    r2 := smtp.NewRequest(inviteToClassroomInfo.StudentEmailArray, "JOIN MY CLASS AS A STUDENT", "JOIN MY CLASS AS A STUDENT")
-    if err2 := r2.ParseTemplate("./public/assets/inviteTemplate.html", studentTemplateData); err2 == nil {
-        r2.SendEmail()
-    }
+	// Send invite student
+	r2 := smtp.NewRequest(inviteToClassroomInfo.StudentEmailArray, "JOIN MY CLASS AS A STUDENT", "JOIN MY CLASS AS A STUDENT")
+	if err2 := r2.ParseTemplate("./public/assets/inviteTemplate.html", studentTemplateData); err2 == nil {
+		r2.SendEmail()
+	}
 
-    return true, base.CodeSuccess, nil
+	return true, base.CodeSuccess, nil
 }
