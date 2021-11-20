@@ -14,12 +14,17 @@ type PostRegisterAccount struct {
 	Username       string `form:"username" json:"username"`
 	Password       string `form:"password" json:"password"`
 	RetypePassword string `form:"retypePassword" json:"retypePassword"`
+	GoogleID       string `form:"googleId" json:"googleId"`
 	PostCreateUpdateUserProfile
 }
 
 type PostLoginAccount struct {
 	Username string `form:"username" json:"username"`
 	Password string `form:"password" json:"password"`
+}
+
+type PostGoogleLogin struct {
+	GoogleID string `form:"googleId" json:"googleId"`
 }
 
 type PostCreateClassroom struct {

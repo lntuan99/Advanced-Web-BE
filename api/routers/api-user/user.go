@@ -15,3 +15,13 @@ func HandlerUpdateUserProfile(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerGetUserProfile(c *gin.Context) {
+	success, status, data := methods.MethodGetUserProfile(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
