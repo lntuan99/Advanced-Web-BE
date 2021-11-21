@@ -46,6 +46,7 @@ func (Account) ConvertPostRegisterAccountToModelAccount(postAccount req_res.Post
 	newAccount := Account{
 		Username: postAccount.Username,
 		Password: hashPassword,
+		GoogleID: postAccount.GoogleID,
 	}
 
 	return newAccount, success

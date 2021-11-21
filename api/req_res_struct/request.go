@@ -1,7 +1,7 @@
 package req_res
 
 type PostCreateUpdateUserProfile struct {
-	Username       string `form:"username" json:"username"`
+	Username     string `form:"username" json:"username"`
 	Name         string `form:"name" json:"name"`
 	Code         string `form:"code" json:"code"`
 	Email        string `form:"email" json:"email"`
