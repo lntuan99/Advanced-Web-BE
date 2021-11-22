@@ -109,10 +109,5 @@ func MethodGetUserProfile(c *gin.Context) (bool, string, interface{}) {
 	userObj, _ := c.Get("user")
 	user := userObj.(model.User)
 
-	existed, isExpired, _ := model.User{}.FindUserByID(user.ID)
-	if existed && !isExpired {
-		return true, base.CodeSuccess, user.ToRes()
-	}
-
-	return false, base.CodeFindUserFail, nil
+	return true, base.CodeSuccess, user.ToRes()
 }
