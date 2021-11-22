@@ -177,7 +177,7 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
 	}
 	model.DBInstance.Create(&newMapping)
 
-	return true, base.CodeSuccess, nil
+	return true, base.CodeSuccess, newClassroom.ToRes()
 }
 
 func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {
