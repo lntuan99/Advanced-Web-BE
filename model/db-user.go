@@ -116,7 +116,7 @@ func (User) FindUserByID(ID uint) (existed bool, isExpired bool, user User) {
 	// Response: EXISTED_USER, IS_EXPIRED / DISABLED, USER INFO
 	user = User{}
 	DBInstance.
-		Where("id = ? ", ID).
+		Where("id = ?", ID).
 		First(&user)
 
 	if user.ID == 0 {
