@@ -4,12 +4,12 @@ import (
 	"os"
 
 	api_jwt "advanced-web.hcmus/api/api-jwt"
-	api_user "advanced-web.hcmus/api/routers/api-user"
-
 	"advanced-web.hcmus/api/base"
 	api_account "advanced-web.hcmus/api/routers/api-account"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
+	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	api_status "advanced-web.hcmus/api/routers/api-status"
+	api_user "advanced-web.hcmus/api/routers/api-user"
 	"advanced-web.hcmus/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -71,6 +71,15 @@ func Initialize() *gin.Engine {
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
 		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
 		classroomRoute.POST("/invite", api_classroom.HandlerInviteToClassroom)
+	}
+	gradeStructureRoute := classroomRoute.Group("grade")
+	gradeStructureRoute.Use((authMiddleware.MiddlewareFuncUser()))
+	{
+		gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
+		gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
+		gradeStructureRoute.POST("/update", api_grade.HandlerUpdateGrade)
+		gradeStructureRoute.GET("/delete/:id", api_grade.HandlerDeleteGrade)
+
 	}
 
 	return r

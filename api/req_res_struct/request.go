@@ -38,3 +38,16 @@ type PostInviteToClassroom struct {
 	TeacherEmailArray []string `json:"teacherEmailArray"`
 	StudentEmailArray []string `json:"studentEmailArray"`
 }
+
+type PostCreateGrade struct {
+	ClassroomID   uint    `json:"classroomId"`
+	Name          string  `json:"name"`
+	MaxPoint      float32 `json:"maxPoint"`
+	OrdinalNumber uint    `json:"ordinalNumber"`
+}
+type PostUpdateGrade struct {
+	GradeID       uint    `json:"gradeId"`
+	Name          string  `json:"name"`
+	MaxPoint      float32 `json:"maxPoint"`
+	OrdinalNumber uint    `json:"ordinalNumber"`
+}
