@@ -45,8 +45,9 @@ type PostCreateGrade struct {
 	MaxPoint      float32 `json:"maxPoint"`
 	OrdinalNumber uint    `json:"ordinalNumber"`
 }
+
 type PostUpdateGrade struct {
-	GradeID       uint    `json:"gradeId"`
+	ID            uint    `json:"id"`
 	Name          string  `json:"name"`
 	MaxPoint      float32 `json:"maxPoint"`
 	OrdinalNumber uint    `json:"ordinalNumber"`

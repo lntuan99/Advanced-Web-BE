@@ -13,7 +13,7 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 	user := userObj.(model.User)
 
 	var gradeInfo req_res.PostCreateGrade
-	if err := c.ShouldBind(&gradeInfo); err != nil {
+	if err := c.ShouldBindJSON(&gradeInfo); err != nil {
 		return false, base.CodeBadRequest, nil
 	}
 
@@ -60,12 +60,13 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 
 	return true, base.CodeSuccess, newGrade.ToRes()
 }
+
 func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 	userObj, _ := c.Get("user")
 	user := userObj.(model.User)
 
 	var gradeInfo req_res.PostUpdateGrade
-	if err := c.ShouldBind(&gradeInfo); err != nil {
+	if err := c.ShouldBindJSON(&gradeInfo); err != nil {
 		return false, base.CodeBadRequest, nil
 	}
 
@@ -75,21 +76,13 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 
 	// Check existed grade in class
 	var existedGrade model.Grade
-	model.DBInstance.First(&existedGrade, "id = ?", gradeInfo.GradeID)
+	model.DBInstance.First(&existedGrade, "id = ?", gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
 
 	if existedGrade.ID == 0 {
 		return false, base.CodeGradeNotExisted, nil
 	}
 
-	//check nameExisted grade
-	if existedGrade.Name != gradeInfo.Name {
-		var existedNameGrade model.Grade
-		model.DBInstance.First(&existedNameGrade, "classroom_id = ? AND name = ?", existedGrade.ClassroomID, gradeInfo.Name)
-		if existedNameGrade.ID > 0 {
-			return false, base.CodeGradeAlreadyInClassroom, nil
-		}
-	}
-
+	// Check classroom ID existed
 	var classroom = model.Classroom{}.FindClassroomByID(existedGrade.ClassroomID)
 	if classroom.ID == 0 {
 		return false, base.CodeClassroomIDNotExisted, nil
@@ -105,6 +98,16 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 	}
 	if mapping.UserRole.JWTType != model.JWT_TYPE_TEACHER {
 		return false, base.CodeGradeUserInvalid, nil
+	}
+
+	//check name of grade existed in classroom
+	if existedGrade.Name != gradeInfo.Name {
+		var existedNameGrade model.Grade
+		model.DBInstance.First(&existedNameGrade, "classroom_id = ? AND name = ?", existedGrade.ClassroomID, gradeInfo.Name)
+
+		if existedNameGrade.ID > 0 {
+			return false, base.CodeGradeAlreadyInClassroom, nil
+		}
 	}
 
 	existedGrade.Name = gradeInfo.Name
@@ -146,7 +149,9 @@ func MethodDeleteGrade(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
-	model.DBInstance.Delete(&existedGrade)
+	model.DBInstance.
+		Where("id = ?", existedGrade.ID).
+		Delete(&model.Grade{})
 
 	return true, base.CodeSuccess, nil
 }
@@ -182,5 +187,6 @@ func MethodGetListGradeByClassroomId(c *gin.Context) (bool, string, interface{})
 	for _, grade := range gradeArray {
 		gradeResArray = append(gradeResArray, grade.ToRes())
 	}
+
 	return true, base.CodeSuccess, gradeResArray
 }
