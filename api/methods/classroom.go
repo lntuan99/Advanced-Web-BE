@@ -257,7 +257,6 @@ func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
 	inviteTeacherLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteTeacherCode)
 	inviteStudentLink := fmt.Sprintf("%v/join?code=%v", config.Config.FeDomain, classroom.InviteStudentCode)
 
-	// Send invite teacher
 	type TemplateData struct {
 		URL string
 	}
@@ -268,6 +267,7 @@ func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
 		URL: inviteStudentLink,
 	}
 
+	// Send invite teacher
 	r1 := smtp.NewRequest(inviteToClassroomInfo.TeacherEmailArray, "JOIN MY CLASS AS A TEACHER", "JOIN MY CLASS AS A TEACHER")
 	if err1 := r1.ParseTemplate("./public/assets/inviteTemplate.html", teacherTemplateData); err1 == nil {
 		r1.SendEmail()
