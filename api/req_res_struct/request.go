@@ -40,10 +40,9 @@ type PostInviteToClassroom struct {
 }
 
 type PostCreateGrade struct {
-	ClassroomID   uint    `json:"classroomId"`
-	Name          string  `json:"name"`
-	MaxPoint      float32 `json:"maxPoint"`
-	OrdinalNumber uint    `json:"ordinalNumber"`
+	ClassroomID uint    `json:"classroomId"`
+	Name        string  `json:"name"`
+	MaxPoint    float32 `json:"maxPoint"`
 }
 
 type PostUpdateGrade struct {

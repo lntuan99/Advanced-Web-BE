@@ -45,12 +45,21 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 	if existedGrade.ID > 0 {
 		return false, base.CodeGradeAlreadyInClassroom, nil
 	}
-
+	var gradeMaxOrdinary model.Grade
+	var ordinalNumber uint
+	if errorOrdinal := model.DBInstance.
+		Order("ordinal_number DESC").
+		Where("classroom_id = ?", classroom.ID).
+		First(&gradeMaxOrdinary).Error; errorOrdinal != nil {
+		ordinalNumber = 1
+	} else {
+		ordinalNumber = gradeMaxOrdinary.OrdinalNumber + 1
+	}
 	newGrade := model.Grade{
 		ClassroomID:   gradeInfo.ClassroomID,
 		Name:          gradeInfo.Name,
 		MaxPoint:      gradeInfo.MaxPoint,
-		OrdinalNumber: gradeInfo.OrdinalNumber,
+		OrdinalNumber: ordinalNumber,
 	}
 	err := model.DBInstance.Create(&newGrade).Error
 
