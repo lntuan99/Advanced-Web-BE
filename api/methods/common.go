@@ -34,3 +34,7 @@ func MiddlewareImplementUserIsATeacherInClassroom(userID uint, classroomID uint)
 
 	return true, mapping
 }
+
+func MiddlewareImplementUserIsAnOwnerOfClassroom(userID uint, classroom model.Classroom) (ok bool) {
+	return classroom.OwnerID == userID
+}

@@ -116,6 +116,7 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 
 	return true, base.CodeSuccess, existedGrade.ToRes()
 }
+
 func MethodDeleteGrade(c *gin.Context) (bool, string, interface{}) {
 	userObj, _ := c.Get("user")
 	user := userObj.(model.User)
@@ -178,4 +179,50 @@ func MethodGetListGradeByClassroomId(c *gin.Context) (bool, string, interface{})
 	}
 
 	return true, base.CodeSuccess, gradeResArray
+}
+
+func MethodInputGradeForAStudent(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate user is a teacher in classroom
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeGradeUserInvalid, nil
+	}
+
+	var gradeInfo req_res.PostInputGradeForAStudent
+	if err := c.ShouldBindJSON(&gradeInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Validate grade already belong to classroom
+	var dbGrade model.Grade
+	model.DBInstance.First(&dbGrade, gradeInfo.GradeID)
+	if dbGrade.ClassroomID != classroom.ID {
+		return false, base.CodeGradeNotBelongToClassroom, nil
+	}
+
+	// Validate student already in classroom
+	ok, mapping := MiddlewareImplementUserInClassroom(gradeInfo.StudentID, classroom.ID)
+	if !ok && mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
+		return false, base.CodeUserIsNotAStudentInClass, nil
+	}
+
+	var dbStudentGradeMapping = model.UserGradeMapping{
+		UserID:  gradeInfo.StudentID,
+		GradeID: gradeInfo.GradeID,
+		Point:   gradeInfo.Point,
+	}
+	model.DBInstance.First(&dbStudentGradeMapping, "user_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
+
+	model.DBInstance.Save(&dbStudentGradeMapping)
+	return true, base.CodeSuccess, nil
 }

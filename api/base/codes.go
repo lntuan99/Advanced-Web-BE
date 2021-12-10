@@ -48,9 +48,11 @@ const (
 	CodeOnlyOwnerCanInviteMemberToClassroom = "ONLY_OWNER_CAN_INVITE_MEMBER_TO_CLASS"
 
 	//Grade
-	CodeEmptyGradeName          = "GRADE_NAME_EMPTY"
-	CodeGradeUserInvalid        = "USER_IS_NOT_A_TEACHER_IN_CLASS"
-	CodeGradeAlreadyInClassroom = "EXISTED_GRADE_IN_CLASSROOM"
-	CodeCreateGradeFail         = "FAILED_TO_CREATE_GRADE"
-	CodeGradeNotExisted         = "GRADE_NOT_EXISTED"
+	CodeEmptyGradeName            = "GRADE_NAME_EMPTY"
+	CodeGradeUserInvalid          = "USER_IS_NOT_A_TEACHER_IN_CLASS"
+	CodeGradeAlreadyInClassroom   = "EXISTED_GRADE_IN_CLASSROOM"
+	CodeCreateGradeFail           = "FAILED_TO_CREATE_GRADE"
+	CodeGradeNotExisted           = "GRADE_NOT_EXISTED"
+	CodeGradeNotBelongToClassroom = "GRADE_NOT_BELONG_TO_CLASSROOM"
+	CodeUserIsNotAStudentInClass  = "USER_IS_NOT_A_STUDENT_IN_CLASS"
 )

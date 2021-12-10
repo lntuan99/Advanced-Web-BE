@@ -59,7 +59,12 @@ func Initialize() *gin.Engine {
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		userRoute.GET("/", api_user.HandlerGetUserProfile)
-		userRoute.POST("/", api_user.HandlerUpdateUserProfile)
+
+		// old: POST
+		// userRoute.POST("/", api_user.HandlerUpdateUserProfile)
+
+		// new: PUT
+		userRoute.PUT("/", api_user.HandlerUpdateUserProfile)
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
@@ -80,9 +85,20 @@ func Initialize() *gin.Engine {
 	{
 		gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
 		gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
-		gradeStructureRoute.POST("/update", api_grade.HandlerUpdateGrade)
-		gradeStructureRoute.GET("/delete/:id", api_grade.HandlerDeleteGrade)
 
+		// old: POST, /update
+		// gradeStructureRoute.POST("/update", api_grade.HandlerUpdateGrade)
+
+		// new: PUT
+		gradeStructureRoute.PUT("/", api_grade.HandlerUpdateGrade)
+
+		// old: GET, /delete/:id
+		// gradeStructureRoute.GET("/delete/:id", api_grade.HandlerDeleteGrade)
+
+		// new: DELETE, /:id
+		gradeStructureRoute.GET("/:id", api_grade.HandlerDeleteGrade)
+
+		gradeStructureRoute.POST("/:id", api_grade.HandlerInputGradeForAStudent)
 	}
 
 	return r
