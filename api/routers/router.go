@@ -46,6 +46,7 @@ func Initialize() *gin.Engine {
 	// Multipart quota
 	r.MaxMultipartMemory = 20971520 // Exactly 20MB
 	r.Static("/media", "./public")
+	r.Static("/export-data", "./public/system")
 
 	accountRoute := routeVersion01.Group("account")
 	{
@@ -71,9 +72,11 @@ func Initialize() *gin.Engine {
 		classroomRoute.POST("/", api_classroom.HandlerCreateClassroom)
 		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
 		classroomRoute.POST("/invite", api_classroom.HandlerInviteToClassroom)
+		classroomRoute.GET("/:id/export-student", api_classroom.HandlerExportStudentListByClassroomID)
 	}
+
 	gradeStructureRoute := classroomRoute.Group("grade")
-	gradeStructureRoute.Use((authMiddleware.MiddlewareFuncUser()))
+	gradeStructureRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
 		gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)

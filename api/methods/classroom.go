@@ -3,6 +3,7 @@ package methods
 import (
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
+	export_excel "advanced-web.hcmus/biz/export-excel"
 	"advanced-web.hcmus/config"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/services/smtp"
@@ -275,4 +276,28 @@ func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	return true, base.CodeSuccess, nil
+}
+
+func MethodExportStudentListByClassroomID(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Check user is a teacher in class
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+
+	fileUrl := export_excel.ProcessExportStudent(classroom.StudentArray)
+
+	return true, base.CodeSuccess, fileUrl
 }

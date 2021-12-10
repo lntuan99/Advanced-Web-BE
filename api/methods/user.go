@@ -68,9 +68,11 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 		}
 	}
 
-	var birthday time.Time
-	if updateUserProfileInfo.Birthday > 0 {
-		birthday = time.Unix(updateUserProfileInfo.Birthday, 0)
+	var birthday *time.Time
+	if updateUserProfileInfo.Birthday != 0 {
+		*birthday = time.Unix(updateUserProfileInfo.Birthday, 0)
+	} else {
+		birthday = nil
 	}
 
 	existedAccountUsername.Username = updateUserProfileInfo.Username

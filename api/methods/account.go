@@ -67,7 +67,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 
 	// Check phone of user valid
 	phone := util.FormatPhoneNumber(registerAccountInfo.Phone)
-	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(registerAccountInfo.Phone){
+	if util.EmptyOrBlankString(phone) && !util.EmptyOrBlankString(registerAccountInfo.Phone) {
 		return false, base.CodePhoneInvalid, nil
 	}
 	registerAccountInfo.Phone = phone
@@ -86,13 +86,20 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		}
 	}
 
-	var newUser = model.User {
+	var birthday *time.Time
+	if registerAccountInfo.Birthday != 0 {
+		*birthday = time.Unix(registerAccountInfo.Birthday, 0)
+	} else {
+		birthday = nil
+	}
+
+	var newUser = model.User{
 		Name:         registerAccountInfo.Name,
 		Code:         registerAccountInfo.Code,
 		Email:        registerAccountInfo.Email,
 		Phone:        registerAccountInfo.Phone,
 		Gender:       registerAccountInfo.Gender,
-		Birthday:     time.Unix(registerAccountInfo.Birthday, 0),
+		Birthday:     birthday,
 		IdentityCard: registerAccountInfo.IdentityCard,
 		Enabled:      true,
 		ExpiredAt:    nil,

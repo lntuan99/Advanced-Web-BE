@@ -75,3 +75,13 @@ func HandlerInviteToClassroom(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerExportStudentListByClassroomID(c *gin.Context) {
+	success, status, data := methods.MethodExportStudentListByClassroomID(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

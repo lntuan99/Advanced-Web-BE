@@ -19,7 +19,7 @@ type User struct {
 	Code         string `gorm:"index:user_code_unique_idx"`
 	Email        string `gorm:"index:user_email_unique_idx"`
 	Phone        string `gorm:"index:user_phone_unique_idx"`
-	Birthday     time.Time
+	Birthday     *time.Time
 	Gender       uint
 	Avatar       string
 	IdentityCard string
@@ -51,7 +51,7 @@ func (user User) ToRes() UserRes {
 	var userAccount Account
 	DBInstance.First(&userAccount, "user_id = ?", user.ID)
 
-	return UserRes {
+	return UserRes{
 		Username:     userAccount.Username,
 		Name:         user.Name,
 		Code:         user.Code,
