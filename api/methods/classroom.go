@@ -103,11 +103,8 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	// Check user already in class
-	var mapping model.UserClassroomMapping
-	model.DBInstance.
-		Preload("UserRole").
-		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
-	if mapping.ID == 0 {
+	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok {
 		return false, base.CodeBadRequest, nil
 	}
 
@@ -196,16 +193,14 @@ func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeInvalidClassroomInviteCode, nil
 	}
 
-	// Check user already be a owner of class
+	// Check user already be an owner of class
 	if classroom.OwnerID == user.ID {
 		return false, base.CodeUserAlreadyOwnerOfClass, nil
 	}
 
 	// Check user existed in class
-	var existedMapping model.UserClassroomMapping
-	model.DBInstance.First(&existedMapping, "classroom_id = ? AND user_id = ?", classroom.ID, user.ID)
-
-	if existedMapping.ID > 0 {
+	ok, _ := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if ok {
 		return false, base.CodeUserAlreadyInClassroom, nil
 	}
 

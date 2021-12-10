@@ -26,15 +26,8 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	//Check user is a teacher
-	var mapping model.UserClassroomMapping
-	model.DBInstance.
-		Preload("UserRole").
-		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
-	if mapping.ID == 0 {
-		return false, base.CodeBadRequest, nil
-	}
-	if mapping.UserRole.JWTType != model.JWT_TYPE_TEACHER {
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
@@ -45,6 +38,7 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 	if existedGrade.ID > 0 {
 		return false, base.CodeGradeAlreadyInClassroom, nil
 	}
+
 	var gradeMaxOrdinary model.Grade
 	var ordinalNumber uint
 	if errorOrdinal := model.DBInstance.
@@ -55,6 +49,7 @@ func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
 	} else {
 		ordinalNumber = gradeMaxOrdinary.OrdinalNumber + 1
 	}
+
 	newGrade := model.Grade{
 		ClassroomID:   gradeInfo.ClassroomID,
 		Name:          gradeInfo.Name,
@@ -85,31 +80,25 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 
 	// Check existed grade in class
 	var existedGrade model.Grade
-	model.DBInstance.First(&existedGrade, "id = ?", gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
+	model.DBInstance.
+		Preload("Classroom").
+		First(&existedGrade, "id = ?", gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
 
 	if existedGrade.ID == 0 {
 		return false, base.CodeGradeNotExisted, nil
 	}
 
 	// Check classroom ID existed
-	var classroom = model.Classroom{}.FindClassroomByID(existedGrade.ClassroomID)
-	if classroom.ID == 0 {
+	if existedGrade.Classroom.ID == 0 {
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	//Check user is a teacher
-	var mapping model.UserClassroomMapping
-	model.DBInstance.
-		Preload("UserRole").
-		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
-	if mapping.ID == 0 {
-		return false, base.CodeBadRequest, nil
-	}
-	if mapping.UserRole.JWTType != model.JWT_TYPE_TEACHER {
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, existedGrade.ClassroomID)
+	if !ok {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
-	//check name of grade existed in classroom
+	// check name of grade existed in classroom
 	if existedGrade.Name != gradeInfo.Name {
 		var existedNameGrade model.Grade
 		model.DBInstance.First(&existedNameGrade, "classroom_id = ? AND name = ?", existedGrade.ClassroomID, gradeInfo.Name)
@@ -135,26 +124,20 @@ func MethodDeleteGrade(c *gin.Context) (bool, string, interface{}) {
 
 	// Check existed grade in class
 	var existedGrade model.Grade
-	model.DBInstance.First(&existedGrade, "id = ?", gradeID)
+	model.DBInstance.
+		Preload("Classroom").
+		First(&existedGrade, "id = ?", gradeID)
 
 	if existedGrade.ID == 0 {
 		return false, base.CodeGradeNotExisted, nil
 	}
 
-	var classroom = model.Classroom{}.FindClassroomByID(existedGrade.ClassroomID)
-	if classroom.ID == 0 {
+	if existedGrade.Classroom.ID == 0 {
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	//Check user is a teacher
-	var mapping model.UserClassroomMapping
-	model.DBInstance.
-		Preload("UserRole").
-		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
-	if mapping.ID == 0 {
-		return false, base.CodeBadRequest, nil
-	}
-	if mapping.UserRole.JWTType != model.JWT_TYPE_TEACHER {
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, existedGrade.ClassroomID)
+	if !ok {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
@@ -176,12 +159,9 @@ func MethodGetListGradeByClassroomId(c *gin.Context) (bool, string, interface{})
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	//Check user in classroom
-	var mapping model.UserClassroomMapping
-	model.DBInstance.
-		Preload("UserRole").
-		First(&mapping, "user_id = ? AND classroom_id = ?", user.ID, classroom.ID)
-	if mapping.ID == 0 {
+	// Check user in classroom
+	ok, _ := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok {
 		return false, base.CodeBadRequest, nil
 	}
 
