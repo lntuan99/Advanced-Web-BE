@@ -25,6 +25,7 @@ type Classroom struct {
 	InviteStudentCode string `gorm:"index:classroom_invite_student_link_idx"`
 	StudentArray      []User `gorm:"many2many:user_classroom_mappings"`
 	TeacherArray      []User `gorm:"many2many:user_classroom_mappings"`
+	GradeArray        []Grade
 }
 
 type ClassroomRes struct {
@@ -83,6 +84,17 @@ func (Classroom) InitializeTableConfig() {
 	DBInstance.Exec(`CREATE INDEX IF NOT EXISTS classroom_name_idx 
     ON classrooms
     USING gin (f_unaccent(name) gin_trgm_ops)`)
+}
+
+func (classroom *Classroom) AfterDelete(tx *gorm.DB) error {
+	var mappingArray = make([]UserClassroomMapping, 0)
+	tx.Find(mappingArray, "classroom_id = ?", classroom.ID)
+
+	for _, mapping := range mappingArray {
+		tx.Delete(&mapping)
+	}
+
+	return nil
 }
 
 func (Classroom) FindClassroomByCode(code string) Classroom {

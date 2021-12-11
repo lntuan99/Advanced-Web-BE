@@ -55,3 +55,13 @@ func HandlerInputGradeForAStudent(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerGetGradeBoardByClassroomID(c *gin.Context) {
+	success, status, data := methods.MethodGetGradeBoardByClassroomID(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

@@ -1,13 +1,13 @@
 package routers
 
 import (
+	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	"os"
 
 	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"advanced-web.hcmus/api/base"
 	api_account "advanced-web.hcmus/api/routers/api-account"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
-	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	api_status "advanced-web.hcmus/api/routers/api-status"
 	api_user "advanced-web.hcmus/api/routers/api-user"
 	"advanced-web.hcmus/config"
@@ -61,10 +61,10 @@ func Initialize() *gin.Engine {
 		userRoute.GET("/", api_user.HandlerGetUserProfile)
 
 		// old: POST
-		// userRoute.POST("/", api_user.HandlerUpdateUserProfile)
+		userRoute.POST("/", api_user.HandlerUpdateUserProfile)
 
 		// new: PUT
-		userRoute.PUT("/", api_user.HandlerUpdateUserProfile)
+		// userRoute.PUT("/", api_user.HandlerUpdateUserProfile)
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
@@ -78,27 +78,32 @@ func Initialize() *gin.Engine {
 		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
 		classroomRoute.POST("/invite", api_classroom.HandlerInviteToClassroom)
 		classroomRoute.GET("/:id/export-student", api_classroom.HandlerExportStudentListByClassroomID)
-	}
 
-	gradeStructureRoute := classroomRoute.Group("grade")
-	gradeStructureRoute.Use(authMiddleware.MiddlewareFuncUser())
-	{
-		gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
-		gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
+		gradeStructureRoute := classroomRoute.Group("grade")
+		gradeStructureRoute.Use(authMiddleware.MiddlewareFuncUser())
+		{
+			gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
+			gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
 
-		// old: POST, /update
-		// gradeStructureRoute.POST("/update", api_grade.HandlerUpdateGrade)
+			// old: POST, /update
+			gradeStructureRoute.POST("/update", api_grade.HandlerUpdateGrade)
 
-		// new: PUT
-		gradeStructureRoute.PUT("/", api_grade.HandlerUpdateGrade)
+			// new: PUT
+			// gradeStructureRoute.PUT("/", api_grade.HandlerUpdateGrade)
 
-		// old: GET, /delete/:id
-		// gradeStructureRoute.GET("/delete/:id", api_grade.HandlerDeleteGrade)
+			// old: GET, /delete/:id
+			gradeStructureRoute.GET("/delete/:id", api_grade.HandlerDeleteGrade)
 
-		// new: DELETE, /:id
-		gradeStructureRoute.GET("/:id", api_grade.HandlerDeleteGrade)
+			// new: DELETE, /:id
+			// gradeStructureRoute.GET("/:id", api_grade.HandlerDeleteGrade)
 
-		gradeStructureRoute.POST("/:id", api_grade.HandlerInputGradeForAStudent)
+			gradeStructureRoute.POST("/:id", api_grade.HandlerInputGradeForAStudent)
+
+			gradeStructureBoardRoute := gradeStructureRoute.Group("/board")
+			{
+				gradeStructureBoardRoute.GET("/:id", api_grade.HandlerGetGradeBoardByClassroomID)
+			}
+		}
 	}
 
 	return r

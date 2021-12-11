@@ -43,6 +43,11 @@ type UserRes struct {
 }
 
 func (user User) ToRes() UserRes {
+	birthday := int64(0)
+	if user.Birthday != nil {
+		birthday = user.Birthday.Unix()
+	}
+
 	expiredAt := int64(0)
 	if user.ExpiredAt != nil {
 		expiredAt = user.ExpiredAt.Unix()
@@ -57,13 +62,51 @@ func (user User) ToRes() UserRes {
 		Code:         user.Code,
 		Email:        user.Email,
 		Phone:        user.Phone,
-		Birthday:     user.Birthday.Unix(),
+		Birthday:     birthday,
 		Gender:       user.Gender,
 		Avatar:       util.SubUrlToFullUrl(user.Avatar),
 		IdentityCard: user.IdentityCard,
 		Enabled:      user.Enabled,
 		ExpiredAt:    expiredAt,
 	}
+}
+
+func (user User) MappedUserInformationToResponseStudentGradeInClassroom(classroomID uint) ResponseStudentGradeInClassroom {
+	return ResponseStudentGradeInClassroom{
+		UserRes:    user.ToRes(),
+		GradeArray: user.GetAllGradeInClassroom(classroomID),
+	}
+}
+
+func (user User) GetAllGradeInClassroom(classroomID uint) []UserGradeMappingRes {
+	var result = make([]UserGradeMappingRes, 0)
+
+	// Find all grade in class
+	var gradeArray = make([]Grade, 0)
+	DBInstance.Find(&gradeArray, "classroom_id = ?", classroomID)
+
+	// Check user is mapped with all grade
+	var userGradeMappingArray = make([]UserGradeMapping, 0)
+	for _, grade := range gradeArray {
+		var dbUserGradeMapping UserGradeMapping
+		DBInstance.First(&dbUserGradeMapping, "user_id = ? AND grade_id = ?", user.ID, grade.ID)
+
+		// if not existed => create new
+		if dbUserGradeMapping.ID == 0 {
+			dbUserGradeMapping.UserID = user.ID
+			dbUserGradeMapping.GradeID = grade.ID
+			dbUserGradeMapping.Point = 0
+			DBInstance.Create(&dbUserGradeMapping)
+		}
+
+		userGradeMappingArray = append(userGradeMappingArray, dbUserGradeMapping)
+	}
+
+	for _, mapping := range userGradeMappingArray {
+		result = append(result, mapping.ToRes())
+	}
+
+	return result
 }
 
 //============================================================
@@ -87,6 +130,17 @@ func (user *User) SetExpiredAt(expiredAt int64) {
 	} else {
 		*user.ExpiredAt = time.Unix(expiredAt, 0)
 	}
+}
+
+func (user *User) AfterDelete(tx *gorm.DB) error {
+	var mappingArray = make([]UserClassroomMapping, 0)
+	tx.Find(mappingArray, "user_id = ?", user.ID)
+
+	for _, mapping := range mappingArray {
+		tx.Delete(&mapping)
+	}
+
+	return nil
 }
 
 func (user *User) BeforeSave(tx *gorm.DB) (err error) {

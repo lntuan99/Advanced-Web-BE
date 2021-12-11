@@ -216,13 +216,42 @@ func MethodInputGradeForAStudent(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeUserIsNotAStudentInClass, nil
 	}
 
-	var dbStudentGradeMapping = model.UserGradeMapping{
-		UserID:  gradeInfo.StudentID,
-		GradeID: gradeInfo.GradeID,
-		Point:   gradeInfo.Point,
-	}
+	var dbStudentGradeMapping model.UserGradeMapping
 	model.DBInstance.First(&dbStudentGradeMapping, "user_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
 
+	dbStudentGradeMapping.UserID = gradeInfo.StudentID
+	dbStudentGradeMapping.GradeID = gradeInfo.GradeID
+	dbStudentGradeMapping.Point = gradeInfo.Point
 	model.DBInstance.Save(&dbStudentGradeMapping)
+
 	return true, base.CodeSuccess, nil
+}
+
+func MethodGetGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate user is a teacher in classroom
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeGradeUserInvalid, nil
+	}
+
+	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+
+	// Find all user grade mapping in classroom
+	var dataResponse = make([]model.ResponseStudentGradeInClassroom, 0)
+	for _, student := range classroom.StudentArray {
+		var studentGradeResponse = student.MappedUserInformationToResponseStudentGradeInClassroom(classroom.ID)
+		dataResponse = append(dataResponse, studentGradeResponse)
+	}
+
+	return true, base.CodeSuccess, dataResponse
 }
