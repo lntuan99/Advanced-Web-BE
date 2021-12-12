@@ -15,14 +15,14 @@ type Grade struct {
 func (grade *Grade) AfterCreate(tx *gorm.DB) error {
 	// Create mapping for all student in classroom
 	var dbClassroom = Classroom{}.FindClassroomByID(grade.ClassroomID)
-	dbClassroom.StudentArray = Classroom{}.GetListUserByJWTType(JWT_TYPE_STUDENT)
+	dbClassroom.GetListStudent()
 
 	for _, student := range dbClassroom.StudentArray {
-		var dbStudentGradeMapping = UserGradeMapping{
-			UserID:  student.ID,
-			GradeID: grade.ID,
+		var dbStudentGradeMapping = StudentGradeMapping{
+			StudentID: student.ID,
+			GradeID:   grade.ID,
 		}
-		tx.First(&dbStudentGradeMapping, "user_id = ? AND grade_id = ?", student.ID, grade.ID)
+		tx.First(&dbStudentGradeMapping, "student_id = ? AND grade_id = ?", student.ID, grade.ID)
 
 		if dbStudentGradeMapping.ID == 0 {
 			tx.Create(&dbStudentGradeMapping)
@@ -35,7 +35,7 @@ func (grade *Grade) AfterCreate(tx *gorm.DB) error {
 func (grade *Grade) AfterDelete(tx *gorm.DB) error {
 	// clear all mapping for all student in classroom
 	tx.Where("grade_id = ?", grade.ID).
-		Delete(&UserGradeMapping{})
+		Delete(&StudentGradeMapping{})
 
 	return nil
 }

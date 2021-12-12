@@ -71,44 +71,6 @@ func (user User) ToRes() UserRes {
 	}
 }
 
-func (user User) MappedUserInformationToResponseStudentGradeInClassroom(classroomID uint) ResponseStudentGradeInClassroom {
-	return ResponseStudentGradeInClassroom{
-		UserRes:    user.ToRes(),
-		GradeArray: user.GetAllGradeInClassroom(classroomID),
-	}
-}
-
-func (user User) GetAllGradeInClassroom(classroomID uint) []UserGradeMappingRes {
-	var result = make([]UserGradeMappingRes, 0)
-
-	// Find all grade in class
-	var gradeArray = make([]Grade, 0)
-	DBInstance.Find(&gradeArray, "classroom_id = ?", classroomID)
-
-	// Check user is mapped with all grade
-	var userGradeMappingArray = make([]UserGradeMapping, 0)
-	for _, grade := range gradeArray {
-		var dbUserGradeMapping UserGradeMapping
-		DBInstance.First(&dbUserGradeMapping, "user_id = ? AND grade_id = ?", user.ID, grade.ID)
-
-		// if not existed => create new
-		if dbUserGradeMapping.ID == 0 {
-			dbUserGradeMapping.UserID = user.ID
-			dbUserGradeMapping.GradeID = grade.ID
-			dbUserGradeMapping.Point = 0
-			DBInstance.Create(&dbUserGradeMapping)
-		}
-
-		userGradeMappingArray = append(userGradeMappingArray, dbUserGradeMapping)
-	}
-
-	for _, mapping := range userGradeMappingArray {
-		result = append(result, mapping.ToRes())
-	}
-
-	return result
-}
-
 //============================================================
 //============================================================
 //============================================================

@@ -109,7 +109,7 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeBadRequest, nil
 	}
 
-	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+	classroom.GetListStudent()
 	classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
 
 	classroomRes := classroom.ToRes()
@@ -295,7 +295,7 @@ func MethodExportStudentListByClassroomID(c *gin.Context) (bool, string, interfa
 		return false, base.CodeBadRequest, nil
 	}
 
-	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+	classroom.GetListStudent()
 
 	fileUrl := export_excel.ProcessExportStudent(classroom.StudentArray)
 

@@ -1,19 +1,18 @@
 package routers
 
 import (
-	api_grade "advanced-web.hcmus/api/routers/api-grade"
-	"os"
-
 	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"advanced-web.hcmus/api/base"
 	api_account "advanced-web.hcmus/api/routers/api-account"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
+	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	api_status "advanced-web.hcmus/api/routers/api-status"
 	api_user "advanced-web.hcmus/api/routers/api-user"
 	"advanced-web.hcmus/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.elastic.co/apm/module/apmgin"
+	"os"
 )
 
 func Initialize() *gin.Engine {
@@ -31,8 +30,8 @@ func Initialize() *gin.Engine {
 		"content-type", "accept",
 		"referer", "user-agent",
 	}
-	r.Use(cors.New(corConfig))
 
+	r.Use(cors.New(corConfig))
 	r.Use(apmgin.Middleware(r))
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())

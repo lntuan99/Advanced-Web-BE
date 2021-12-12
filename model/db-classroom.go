@@ -23,28 +23,28 @@ type Classroom struct {
 	Description       string
 	InviteTeacherCode string `gorm:"index:classroom_invite_teacher_link_idx"`
 	InviteStudentCode string `gorm:"index:classroom_invite_student_link_idx"`
-	StudentArray      []User `gorm:"many2many:user_classroom_mappings"`
+	StudentArray      []Student
 	TeacherArray      []User `gorm:"many2many:user_classroom_mappings"`
 	GradeArray        []Grade
 }
 
 type ClassroomRes struct {
-	ID                uint      `json:"id"`
-	JWTType           uint      `json:"jwtType"`
-	OwnerName         string    `json:"ownerName"`
-	OwnerAvatar       string    `json:"ownerAvatar"`
-	Name              string    `json:"name"`
-	CoverImageURL     string    `json:"coverImageUrl"`
-	Code              string    `json:"code"`
-	InviteTeacherCode string    `json:"inviteTeacherCode"`
-	InviteStudentCode string    `json:"inviteStudentCode"`
-	Description       string    `json:"description"`
-	StudentResArray   []UserRes `json:"studentArray"`
-	TeacherResArray   []UserRes `json:"teacherArray"`
+	ID                uint         `json:"id"`
+	JWTType           uint         `json:"jwtType"`
+	OwnerName         string       `json:"ownerName"`
+	OwnerAvatar       string       `json:"ownerAvatar"`
+	Name              string       `json:"name"`
+	CoverImageURL     string       `json:"coverImageUrl"`
+	Code              string       `json:"code"`
+	InviteTeacherCode string       `json:"inviteTeacherCode"`
+	InviteStudentCode string       `json:"inviteStudentCode"`
+	Description       string       `json:"description"`
+	StudentResArray   []StudentRes `json:"studentArray"`
+	TeacherResArray   []UserRes    `json:"teacherArray"`
 }
 
 func (classroom Classroom) ToRes() ClassroomRes {
-	var studentResArray = make([]UserRes, 0)
+	var studentResArray = make([]StudentRes, 0)
 	for _, student := range classroom.StudentArray {
 		studentResArray = append(studentResArray, student.ToRes())
 	}
@@ -140,6 +140,13 @@ func (classroom Classroom) GetListUserByJWTType(JWTType uint) []User {
 	}
 
 	return userArray
+}
+
+func (classroom *Classroom) GetListStudent() {
+	DBInstance.
+		Preload("User").
+		Where("classroom_id = ?", classroom.ID).
+		Find(&classroom.StudentArray)
 }
 
 func (classroom *Classroom) ClassroomGenerateInviteCode() {

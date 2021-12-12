@@ -216,10 +216,10 @@ func MethodInputGradeForAStudent(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeUserIsNotAStudentInClass, nil
 	}
 
-	var dbStudentGradeMapping model.UserGradeMapping
+	var dbStudentGradeMapping model.StudentGradeMapping
 	model.DBInstance.First(&dbStudentGradeMapping, "user_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
 
-	dbStudentGradeMapping.UserID = gradeInfo.StudentID
+	dbStudentGradeMapping.StudentID = gradeInfo.StudentID
 	dbStudentGradeMapping.GradeID = gradeInfo.GradeID
 	dbStudentGradeMapping.Point = gradeInfo.Point
 	model.DBInstance.Save(&dbStudentGradeMapping)
@@ -244,12 +244,12 @@ func MethodGetGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
-	classroom.StudentArray = classroom.GetListUserByJWTType(model.JWT_TYPE_STUDENT)
+	classroom.GetListStudent()
 
 	// Find all user grade mapping in classroom
 	var dataResponse = make([]model.ResponseStudentGradeInClassroom, 0)
 	for _, student := range classroom.StudentArray {
-		var studentGradeResponse = student.MappedUserInformationToResponseStudentGradeInClassroom(classroom.ID)
+		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID)
 		dataResponse = append(dataResponse, studentGradeResponse)
 	}
 

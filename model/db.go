@@ -98,7 +98,8 @@ func _autoMigrateTables() {
 		&Classroom{},
 		&UserClassroomMapping{},
 		&Grade{},
-		&UserGradeMapping{},
+		&Student{},
+		&StudentGradeMapping{},
 	)
 }
 

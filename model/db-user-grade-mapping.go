@@ -1,15 +1,15 @@
 package model
 
-type UserGradeMapping struct {
-	ID      uint `gorm:"primary_key"`
-	UserID  uint `gorm:"index:user_grade_in_mapping_idx"`
-	User    User
-	GradeID uint `gorm:"index:user_grade_in_mapping_idx"`
-	Grade   Grade
-	Point   float32
+type StudentGradeMapping struct {
+	ID        uint `gorm:"primary_key"`
+	StudentID uint `gorm:"index:student_grade_in_mapping_idx"`
+	Student   Student
+	GradeID   uint `gorm:"index:student_grade_in_mapping_idx"`
+	Grade     Grade
+	Point     float32
 }
 
-type UserGradeMappingRes struct {
+type StudentGradeMappingRes struct {
 	GradeID       uint    `json:"id"`
 	Name          string  `json:"name"`
 	Point         float32 `json:"point"`
@@ -18,14 +18,14 @@ type UserGradeMappingRes struct {
 }
 
 type ResponseStudentGradeInClassroom struct {
-	UserRes
-	GradeArray []UserGradeMappingRes
+	StudentRes
+	GradeArray []StudentGradeMappingRes `json:"gradeArray"`
 }
 
-func (mapping UserGradeMapping) ToRes() UserGradeMappingRes {
+func (mapping StudentGradeMapping) ToRes() StudentGradeMappingRes {
 	DBInstance.First(&mapping.Grade, mapping.GradeID)
 
-	return UserGradeMappingRes{
+	return StudentGradeMappingRes{
 		GradeID:       mapping.GradeID,
 		Name:          mapping.Grade.Name,
 		Point:         mapping.Point,
