@@ -1,6 +1,9 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"advanced-web.hcmus/util"
+	"github.com/jinzhu/gorm"
+)
 
 type UserClassroomMapping struct {
 	gorm.Model
@@ -28,7 +31,10 @@ func (mapping *UserClassroomMapping) AfterCreate(tx *gorm.DB) error {
 
 		existedStudent.ClassroomID = mapping.ClassroomID
 		existedStudent.Code = mapping.User.Code
-		existedStudent.Name = mapping.User.Name
+
+		if util.EmptyOrBlankString(existedStudent.Name) {
+			existedStudent.Name = mapping.User.Name
+		}
 
 		// Use save for create new if not existed or update if existed
 		tx.Save(&existedStudent)

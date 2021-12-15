@@ -46,6 +46,7 @@ const (
 	CodeUserAlreadyInClassroom              = "USER_ALREADY_IN_CLASSROOM"
 	CodeUserAlreadyOwnerOfClass             = "USER_ALREADY_OWNER_OF_CLASSROOM"
 	CodeOnlyOwnerCanInviteMemberToClassroom = "ONLY_OWNER_CAN_INVITE_MEMBER_TO_CLASS"
+	CodeImportStudentFail                   = "IMPORT_STUDENT_FAIL"
 
 	//Grade
 	CodeEmptyGradeName            = "GRADE_NAME_EMPTY"

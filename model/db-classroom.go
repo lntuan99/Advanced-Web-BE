@@ -44,6 +44,14 @@ type ClassroomRes struct {
 }
 
 func (classroom Classroom) ToRes() ClassroomRes {
+	if len(classroom.StudentArray) == 0 {
+		classroom.GetListStudent()
+	}
+
+	if len(classroom.TeacherArray) == 0 {
+		classroom.TeacherArray = classroom.GetListUserByJWTType(JWT_TYPE_TEACHER)
+	}
+
 	var studentResArray = make([]StudentRes, 0)
 	for _, student := range classroom.StudentArray {
 		studentResArray = append(studentResArray, student.ToRes())

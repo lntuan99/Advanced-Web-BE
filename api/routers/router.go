@@ -77,6 +77,7 @@ func Initialize() *gin.Engine {
 		classroomRoute.GET("/join", api_classroom.HandlerJoinClassroom)
 		classroomRoute.POST("/invite", api_classroom.HandlerInviteToClassroom)
 		classroomRoute.GET("/:id/export-student", api_classroom.HandlerExportStudentListByClassroomID)
+		classroomRoute.POST("/:id/import-student", api_classroom.HandlerImportStudentListByClassroomID)
 
 		gradeStructureRoute := classroomRoute.Group("grade")
 		gradeStructureRoute.Use(authMiddleware.MiddlewareFuncUser())

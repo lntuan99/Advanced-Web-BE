@@ -217,7 +217,7 @@ func MethodInputGradeForAStudent(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	var dbStudentGradeMapping model.StudentGradeMapping
-	model.DBInstance.First(&dbStudentGradeMapping, "user_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
+	model.DBInstance.First(&dbStudentGradeMapping, "student_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
 
 	dbStudentGradeMapping.StudentID = gradeInfo.StudentID
 	dbStudentGradeMapping.GradeID = gradeInfo.GradeID

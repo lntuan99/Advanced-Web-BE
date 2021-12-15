@@ -53,48 +53,49 @@ func (excel *StudentExcel) WriteLine(data interface{}, rowIndex int) *StudentExc
 	// -----------------------------
 	studentData := data.(model.Student)
 
-	name := studentData.User.Name
+	name := studentData.Name
 	if util.EmptyOrBlankString(name) {
-		name = studentData.Name
+		name = studentData.User.Name
 	}
 
-	code := studentData.User.Code
+	code := studentData.Code
 	if util.EmptyOrBlankString(code) {
-		code = studentData.Code
+		code = studentData.User.Code
 	}
 
 	values := make([]interface{}, 0)
-	values = append(values, name)
 	values = append(values, code)
-	values = append(values, "") // Birthday
-	values = append(values, studentData.User.IdentityCard)
-	values = append(values, studentData.User.Phone)
-	values = append(values, studentData.User.Email)
+	values = append(values, name)
+
+	//values = append(values, "") // Birthday
+	//values = append(values, studentData.User.IdentityCard)
+	//values = append(values, studentData.User.Phone)
+	//values = append(values, studentData.User.Email)
 
 	// -----------------------------
 	// -----------------------------
 	// FORMAT COLUMN WIDTH
 	// -----------------------------
 	// -----------------------------
-	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "A"); int(width) < len(name) {
-		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "A", "A", float64(len(name)))
+	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "A"); int(width) < len(code) {
+		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "A", "A", float64(len(code)))
 	}
 
-	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "B"); int(width) < len(code) {
-		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "B", "B", float64(len(code)))
+	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "B"); int(width) < len(name) {
+		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "B", "B", float64(len(name)))
 	}
 
-	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "C"); int(width) < len(studentData.User.IdentityCard) {
-		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "C", "C", float64(len(studentData.User.IdentityCard)))
-	}
-
-	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "E"); int(width) < len(studentData.User.Phone) {
-		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "E", "E", float64(len(studentData.User.Phone)))
-	}
-
-	if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "F"); int(width) < len(studentData.User.Email) {
-		_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "F", "F", float64(len(studentData.User.Email)))
-	}
+	//if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "C"); int(width) < len(studentData.User.IdentityCard) {
+	//	_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "C", "C", float64(len(studentData.User.IdentityCard)))
+	//}
+	//
+	//if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "E"); int(width) < len(studentData.User.Phone) {
+	//	_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "E", "E", float64(len(studentData.User.Phone)))
+	//}
+	//
+	//if width, _ := excel.cursor.GetColWidth(STUDENT_SHEET_NAME, "F"); int(width) < len(studentData.User.Email) {
+	//	_ = excel.cursor.SetColWidth(STUDENT_SHEET_NAME, "F", "F", float64(len(studentData.User.Email)))
+	//}
 
 	//------------------------------
 	// -----------------------------
@@ -103,11 +104,11 @@ func (excel *StudentExcel) WriteLine(data interface{}, rowIndex int) *StudentExc
 	// -----------------------------
 	_ = excel.cursor.SetSheetRow(STUDENT_SHEET_NAME, fmt.Sprintf("A%v", rowIndex), &values)
 
-	birthdayString := ""
-	if studentData.User.Birthday != nil {
-		birthdayString = studentData.User.Birthday.Format("02/01/2006")
-	}
-	_ = excel.cursor.SetCellStr(STUDENT_SHEET_NAME, fmt.Sprintf("C%v", rowIndex), birthdayString)
+	//birthdayString := ""
+	//if studentData.User.Birthday != nil {
+	//	birthdayString = studentData.User.Birthday.Format("02/01/2006")
+	//}
+	//_ = excel.cursor.SetCellStr(STUDENT_SHEET_NAME, fmt.Sprintf("C%v", rowIndex), birthdayString)
 
 	return excel
 }
@@ -140,7 +141,7 @@ func ProcessExportStudent(studentArray []model.Student) string {
 	// Write each data line to the table.
 	// Start writing data at row 5th.
 	for index, data := range studentArray {
-		rowIndex := index + 5
+		rowIndex := index + 2
 		excelFile.WriteLine(data, rowIndex)
 	}
 

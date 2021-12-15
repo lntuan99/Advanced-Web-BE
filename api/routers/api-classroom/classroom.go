@@ -85,3 +85,13 @@ func HandlerExportStudentListByClassroomID(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerImportStudentListByClassroomID(c *gin.Context) {
+	success, status, data := methods.MethodImportStudentListByClassroomID(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

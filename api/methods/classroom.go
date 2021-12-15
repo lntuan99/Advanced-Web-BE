@@ -4,12 +4,15 @@ import (
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
 	export_excel "advanced-web.hcmus/biz/export-excel"
+	import_excel "advanced-web.hcmus/biz/import-excel"
+	"advanced-web.hcmus/biz/upload"
 	"advanced-web.hcmus/config"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/services/smtp"
 	"advanced-web.hcmus/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"path/filepath"
 	"time"
 )
@@ -300,4 +303,42 @@ func MethodExportStudentListByClassroomID(c *gin.Context) (bool, string, interfa
 	fileUrl := export_excel.ProcessExportStudent(classroom.StudentArray)
 
 	return true, base.CodeSuccess, fileUrl
+}
+
+func MethodImportStudentListByClassroomID(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Check user is a teacher in class
+	ok := MiddlewareImplementUserIsAnOwnerOfClassroom(user.ID, classroom)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	file, header, errFile := c.Request.FormFile("import-student-file")
+	if errFile != nil {
+		return false, base.CodeImportStudentFail, nil
+	}
+
+	fileBytes, err := ioutil.ReadAll(file)
+	util.CheckErr(err)
+
+	filePath := upload.WithTemporary().Save(header.Filename, fileBytes)
+
+	biz := import_excel.Initialize(filePath, classroom.ID)
+
+	ok, importResponseArray := biz.Importing()
+
+	if !ok {
+		return false, base.CodeImportStudentFail, nil
+	}
+
+	return true, base.CodeSuccess, importResponseArray
 }
