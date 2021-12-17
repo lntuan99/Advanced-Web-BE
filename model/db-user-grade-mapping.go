@@ -20,6 +20,7 @@ type StudentGradeMappingRes struct {
 type ResponseStudentGradeInClassroom struct {
 	StudentRes
 	StudentName   string                   `json:"studentName"`
+	StudentCode   string                   `json:"studentCode"`
 	TotalGrade    float32                  `json:"totalGrade"`
 	MaxTotalGrade float32                  `json:"maxTotalGrade"`
 	GradeArray    []StudentGradeMappingRes `json:"gradeArray"`

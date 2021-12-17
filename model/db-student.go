@@ -30,6 +30,7 @@ func (student Student) MappedStudentInformationToResponseStudentGradeInClassroom
 	return ResponseStudentGradeInClassroom{
 		StudentRes:    student.ToRes(),
 		StudentName:   student.Name,
+		StudentCode:   student.Code,
 		TotalGrade:    totalGrade,
 		MaxTotalGrade: maxTotalGrade,
 		GradeArray:    gradeArray,

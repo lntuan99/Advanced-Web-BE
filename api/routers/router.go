@@ -80,7 +80,6 @@ func Initialize() *gin.Engine {
 		classroomRoute.POST("/:id/import-student", api_classroom.HandlerImportStudentListByClassroomID)
 
 		gradeStructureRoute := classroomRoute.Group("grade")
-		gradeStructureRoute.Use(authMiddleware.MiddlewareFuncUser())
 		{
 			gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
 			gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
