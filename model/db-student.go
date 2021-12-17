@@ -25,14 +25,19 @@ func (student Student) ToRes() StudentRes {
 }
 
 func (student Student) MappedStudentInformationToResponseStudentGradeInClassroom(classroomID uint) ResponseStudentGradeInClassroom {
+	totalGrade, maxTotalGrade, gradeArray := student.GetAllGradeInClassroom(classroomID)
+
 	return ResponseStudentGradeInClassroom{
-		StudentRes: student.ToRes(),
-		GradeArray: student.GetAllGradeInClassroom(classroomID),
+		StudentRes:    student.ToRes(),
+		StudentName:   student.Name,
+		TotalGrade:    totalGrade,
+		MaxTotalGrade: maxTotalGrade,
+		GradeArray:    gradeArray,
 	}
 }
 
-func (student Student) GetAllGradeInClassroom(classroomID uint) []StudentGradeMappingRes {
-	var result = make([]StudentGradeMappingRes, 0)
+func (student Student) GetAllGradeInClassroom(classroomID uint) (totalGrade float32, maxTotalGrade float32, result []StudentGradeMappingRes) {
+	result = make([]StudentGradeMappingRes, 0)
 
 	// Find all grade in class
 	var gradeArray = make([]Grade, 0)
@@ -52,6 +57,8 @@ func (student Student) GetAllGradeInClassroom(classroomID uint) []StudentGradeMa
 			DBInstance.Create(&dbStudentGradeMapping)
 		}
 
+		totalGrade += dbStudentGradeMapping.Point
+		maxTotalGrade += grade.MaxPoint
 		studentGradeMappingArray = append(studentGradeMappingArray, dbStudentGradeMapping)
 	}
 
@@ -59,5 +66,5 @@ func (student Student) GetAllGradeInClassroom(classroomID uint) []StudentGradeMa
 		result = append(result, mapping.ToRes())
 	}
 
-	return result
+	return totalGrade, maxTotalGrade, result
 }

@@ -10,6 +10,7 @@ type Grade struct {
 	MaxPoint      float32
 	Percent       uint
 	OrdinalNumber uint
+	IsFinalized   bool `gorm:"default:false"`
 }
 
 func (grade *Grade) AfterCreate(tx *gorm.DB) error {

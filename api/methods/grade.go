@@ -111,6 +111,7 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 	existedGrade.Name = gradeInfo.Name
 	existedGrade.MaxPoint = gradeInfo.MaxPoint
 	existedGrade.OrdinalNumber = gradeInfo.OrdinalNumber
+	existedGrade.IsFinalized = gradeInfo.IsFinalized
 
 	model.DBInstance.Save(&existedGrade)
 
