@@ -3,9 +3,11 @@ package methods
 import (
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
+	export_excel "advanced-web.hcmus/biz/export-excel"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
 	"github.com/gin-gonic/gin"
+	"sort"
 )
 
 func MethodCreateGrade(c *gin.Context) (bool, string, interface{}) {
@@ -82,7 +84,7 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 	var existedGrade model.Grade
 	model.DBInstance.
 		Preload("Classroom").
-		First(&existedGrade, "id = ?", gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
+		First(&existedGrade, gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
 
 	if existedGrade.ID == 0 {
 		return false, base.CodeGradeNotExisted, nil
@@ -143,9 +145,7 @@ func MethodDeleteGrade(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
-	model.DBInstance.
-		Where("id = ?", existedGrade.ID).
-		Delete(&model.Grade{})
+	model.DBInstance.Delete(&existedGrade)
 
 	return true, base.CodeSuccess, nil
 }
@@ -255,4 +255,54 @@ func MethodGetGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}
 	}
 
 	return true, base.CodeSuccess, dataResponse
+}
+
+func MethodExportGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Check user is a teacher in class
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	var gradeBoardInfo req_res.PostExportGradeBoard
+	if err := c.ShouldBindJSON(&gradeBoardInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Validate grade already belong to classroom
+	var okeGradeArray = make([]model.Grade, 0)
+	for _, gradeID := range gradeBoardInfo.GradeIDArray {
+		var dbGrade model.Grade
+
+		model.DBInstance.First(&dbGrade, gradeID)
+		if dbGrade.ClassroomID == classroom.ID {
+			okeGradeArray = append(okeGradeArray, dbGrade)
+		}
+	}
+
+	sort.Slice(okeGradeArray, func(i, j int) bool {
+		return okeGradeArray[i].OrdinalNumber < okeGradeArray[j].OrdinalNumber
+	})
+
+	classroom.GetListStudent()
+
+	var responseStudentGradeInClassroomArray = make([]model.ResponseStudentGradeInClassroom, len(classroom.StudentArray))
+	for i, student := range classroom.StudentArray {
+		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID)
+		responseStudentGradeInClassroomArray[i] = studentGradeResponse
+	}
+
+	fileUrl := export_excel.ProcessExportGradeBoard(responseStudentGradeInClassroomArray, okeGradeArray)
+
+	return true, base.CodeSuccess, fileUrl
 }

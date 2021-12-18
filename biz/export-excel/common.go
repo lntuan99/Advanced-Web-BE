@@ -20,7 +20,7 @@ type ExcelStruct struct {
 type IExcel interface {
 	GetWorkingDir() string
 	CreateFolder(folderName string) string
-	WriteHeader() *IExcel
+	WriteHeader(*IExcel)
 	Save(fileName string) (string, error)
 	WriteLine(data interface{}, rowIndex int) *IExcel
 }

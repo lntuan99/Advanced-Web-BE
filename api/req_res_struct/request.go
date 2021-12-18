@@ -1,10 +1,10 @@
 package req_res
 
 type PostCreateUpdateUserProfile struct {
-	Username     string `form:"username" json:"username"`
-	Name         string `form:"name" json:"name"`
-	Code         string `form:"code" json:"code"`
-	Email        string `form:"email" json:"email"`
+	Username     string `form:"username" json:"username" binding:"required"`
+	Name         string `form:"name" json:"name" binding:"required"`
+	Code         string `form:"code" json:"code" binding:"required"`
+	Email        string `form:"email" json:"email" binding:"required"`
 	Phone        string `form:"phone" json:"phone"`
 	Birthday     int64  `form:"birthday" json:"birthday"`
 	Gender       uint   `form:"gender" json:"gender"`
@@ -12,8 +12,8 @@ type PostCreateUpdateUserProfile struct {
 }
 
 type PostRegisterAccount struct {
-	Password       string `form:"password" json:"password"`
-	RetypePassword string `form:"retypePassword" json:"retypePassword"`
+	Password       string `form:"password" json:"password" binding:"required"`
+	RetypePassword string `form:"retypePassword" json:"retypePassword" binding:"required"`
 	GoogleID       string `form:"googleId" json:"googleId"`
 	PostCreateUpdateUserProfile
 }
@@ -57,4 +57,8 @@ type PostInputGradeForAStudent struct {
 	StudentID uint    `json:"studentId"`
 	GradeID   uint    `json:"gradeId"`
 	Point     float32 `json:"point"`
+}
+
+type PostExportGradeBoard struct {
+	GradeIDArray []uint `json:"gradeIdArray"`
 }

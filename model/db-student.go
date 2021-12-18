@@ -42,7 +42,9 @@ func (student Student) GetAllGradeInClassroom(classroomID uint) (totalGrade floa
 
 	// Find all grade in class
 	var gradeArray = make([]Grade, 0)
-	DBInstance.Find(&gradeArray, "classroom_id = ?", classroomID)
+	DBInstance.
+		Order("ordinal_number ASC").
+		Find(&gradeArray, "classroom_id = ?", classroomID)
 
 	// Check student is mapped with all grade
 	var studentGradeMappingArray = make([]StudentGradeMapping, 0)
