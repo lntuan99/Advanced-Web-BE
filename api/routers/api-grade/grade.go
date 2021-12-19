@@ -75,3 +75,13 @@ func HandlerExportGradeBoardByClassroomID(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerImportGradeBoardByClassroomID(c *gin.Context) {
+	success, status, data := methods.MethodImportGradeBoardByClassroomID(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

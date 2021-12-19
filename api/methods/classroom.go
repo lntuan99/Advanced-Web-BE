@@ -332,7 +332,7 @@ func MethodImportStudentListByClassroomID(c *gin.Context) (bool, string, interfa
 
 	filePath := upload.WithTemporary().Save(header.Filename, fileBytes)
 
-	biz := import_excel.Initialize(filePath, classroom.ID)
+	biz := import_excel.SheetStudentStruct{}.Initialize(filePath, classroom.ID)
 
 	ok, importResponseArray := biz.Importing()
 

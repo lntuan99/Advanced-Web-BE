@@ -4,9 +4,12 @@ import (
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
 	export_excel "advanced-web.hcmus/biz/export-excel"
+	import_excel "advanced-web.hcmus/biz/import-excel"
+	"advanced-web.hcmus/biz/upload"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"sort"
 )
 
@@ -305,4 +308,42 @@ func MethodExportGradeBoardByClassroomID(c *gin.Context) (bool, string, interfac
 	fileUrl := export_excel.ProcessExportGradeBoard(responseStudentGradeInClassroomArray, okeGradeArray)
 
 	return true, base.CodeSuccess, fileUrl
+}
+
+func MethodImportGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	//Check user is a teacher in class
+	ok := MiddlewareImplementUserIsAnOwnerOfClassroom(user.ID, classroom)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	file, header, errFile := c.Request.FormFile("import-grade-board-file")
+	if errFile != nil {
+		return false, base.CodeImportStudentFail, nil
+	}
+
+	fileBytes, err := ioutil.ReadAll(file)
+	util.CheckErr(err)
+
+	filePath := upload.WithTemporary().Save(header.Filename, fileBytes)
+
+	biz := import_excel.SheetGradeBoardStruct{}.Initialize(filePath, classroom.ID)
+
+	ok, importResponseArray := biz.Importing()
+
+	if !ok {
+		return false, base.CodeImportGradeBoardFail, nil
+	}
+
+	return true, base.CodeSuccess, importResponseArray
 }

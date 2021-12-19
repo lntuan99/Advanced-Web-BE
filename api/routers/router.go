@@ -102,7 +102,7 @@ func Initialize() *gin.Engine {
 			{
 				gradeStructureBoardRoute.GET("/:id", api_grade.HandlerGetGradeBoardByClassroomID)
 				gradeStructureBoardRoute.POST("/:id/export-grade-board", api_grade.HandlerExportGradeBoardByClassroomID)
-				//gradeStructureBoardRoute.POST("/:id/import-grade-student", api_grade.HandlerImportStudentListByClassroomID)
+				gradeStructureBoardRoute.POST("/:id/import-grade-board", api_grade.HandlerImportGradeBoardByClassroomID)
 			}
 		}
 	}

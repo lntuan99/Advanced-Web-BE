@@ -16,40 +16,21 @@ type SheetStudentStruct struct {
 
 	ClassroomID uint
 
-	// The final staff-array which will be inserted to database
+	// The final student array which will be inserted to database
 	NewStudentArray []model.Student
 
 	// Key: code | Value: Student model
 	ExistedStudentCodeMap map[string]model.Student
 }
 
-var ColumnMapping = map[int]string{
-	0:  "A",
-	1:  "B",
-	2:  "C",
-	3:  "D",
-	4:  "E",
-	5:  "F",
-	6:  "G",
-	7:  "H",
-	8:  "I",
-	9:  "J",
-	10: "K",
-	11: "L",
-	12: "M",
-	13: "N",
-	14: "O",
-	15: "P",
-}
-
-func Initialize(fullPath string, classroomID uint) *SheetStudentStruct {
+func (SheetStudentStruct) Initialize(fullPath string, classroomID uint) *SheetStudentStruct {
 	return &SheetStudentStruct{
 		ExcelStruct: ExcelStruct{
 			SheetName: STUDENT_SHEET_NAME,
 			Cursor:    util.ReadXLXS(fullPath),
 		},
 		ClassroomID:           classroomID,
-		ExistedStudentCodeMap: findExistedStudentCodeMap(classroomID),
+		ExistedStudentCodeMap: SheetStudentStruct{}.findExistedStudentCodeMap(classroomID),
 	}
 }
 
@@ -59,7 +40,6 @@ func (sheetStudent *SheetStudentStruct) Importing() (ok bool, importRowResponseA
 	// Check the existence of sheet
 	sheetIndex := sheetStudent.Cursor.GetSheetIndex(sheetStudent.SheetName)
 	if sheetIndex < 0 {
-		//responseMessage += fmt.Sprintf("Sheet '%v' not found. Stopped!\n", sheetStudent.SheetName)
 		return false, importRowResponseArray
 	}
 
@@ -79,8 +59,7 @@ func (sheetStudent *SheetStudentStruct) Importing() (ok bool, importRowResponseA
 // ==============================================================
 // ==============================================================
 // ==============================================================
-
-func findExistedStudentCodeMap(classroomID uint) map[string]model.Student {
+func (SheetStudentStruct) findExistedStudentCodeMap(classroomID uint) map[string]model.Student {
 	studentArray := make([]model.Student, 0)
 	model.DBInstance.
 		Preload("User").

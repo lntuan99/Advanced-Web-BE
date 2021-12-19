@@ -54,7 +54,7 @@ func (student Student) GetAllGradeInClassroom(classroomID uint) (totalGrade floa
 
 		// if not existed => create new
 		if dbStudentGradeMapping.ID == 0 {
-			dbStudentGradeMapping.StudentID = Student{}.ID
+			dbStudentGradeMapping.StudentID = student.ID
 			dbStudentGradeMapping.GradeID = grade.ID
 			dbStudentGradeMapping.Point = 0
 			DBInstance.Create(&dbStudentGradeMapping)
