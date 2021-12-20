@@ -215,10 +215,10 @@ func MethodInputGradeForAStudent(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	// Validate student already in classroom
-	ok, mapping := MiddlewareImplementUserInClassroom(gradeInfo.StudentID, classroom.ID)
-	if !ok && mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
-		return false, base.CodeUserIsNotAStudentInClass, nil
-	}
+	//ok, mapping := MiddlewareImplementUserInClassroom(gradeInfo.StudentID, classroom.ID)
+	//if !ok && mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
+	//	return false, base.CodeUserIsNotAStudentInClass, nil
+	//}
 
 	var dbStudentGradeMapping model.StudentGradeMapping
 	model.DBInstance.First(&dbStudentGradeMapping, "student_id = ? AND grade_id = ?", gradeInfo.StudentID, gradeInfo.GradeID)
