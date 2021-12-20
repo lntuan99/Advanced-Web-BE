@@ -46,7 +46,7 @@ func (gradeBoardExcel *GradeBoardExcel) Save() error {
 	return nil
 }
 
-func (gradeBoardExcel *GradeBoardExcel) WriteLine(data interface{}, rowIndex int) *GradeBoardExcel {
+func (gradeBoardExcel *GradeBoardExcel) WriteLine(data interface{}, rowIndex int, okeGradeMap map[uint]bool) *GradeBoardExcel {
 	// -----------------------------
 	// -----------------------------
 	// APPEND DATA
@@ -69,7 +69,9 @@ func (gradeBoardExcel *GradeBoardExcel) WriteLine(data interface{}, rowIndex int
 	values = append(values, name)
 
 	for _, grade := range studentGradeData.GradeArray {
-		values = append(values, grade.Point)
+		if _, ok := okeGradeMap[grade.GradeID]; ok {
+			values = append(values, grade.Point)
+		}
 	}
 
 	// -----------------------------
@@ -180,9 +182,14 @@ func ProcessExportGradeBoard(responseStudentGradeInClassroomArray []model.Respon
 
 	// Write each data line to the table.
 	// Start writing data at row 2th.
+	var okeGradeIDMap = make(map[uint]bool)
+	for _, grade := range okeGradeArray {
+		okeGradeIDMap[grade.ID] = true
+	}
+
 	for index, data := range responseStudentGradeInClassroomArray {
 		rowIndex := index + 2
-		excelFile.WriteLine(data, rowIndex)
+		excelFile.WriteLine(data, rowIndex, okeGradeIDMap)
 	}
 
 	// Save file
