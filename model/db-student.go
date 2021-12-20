@@ -12,6 +12,8 @@ type Student struct {
 }
 
 type StudentRes struct {
+	StudentID uint `json:"studentId"`
+
 	// Add new field if needed
 	UserRes
 }
@@ -20,7 +22,8 @@ func (student Student) ToRes() StudentRes {
 	DBInstance.First(&student.User, student.Code)
 
 	return StudentRes{
-		student.User.ToRes(),
+		StudentID: student.ID,
+		UserRes:   student.User.ToRes(),
 	}
 }
 
