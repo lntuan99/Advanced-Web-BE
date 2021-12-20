@@ -54,7 +54,7 @@ type PostUpdateGrade struct {
 }
 
 type PostInputGradeForAStudent struct {
-	StudentID string  `json:"studentId"`
+	StudentID uint    `json:"studentId"`
 	GradeID   uint    `json:"gradeId"`
 	Point     float32 `json:"point"`
 }
