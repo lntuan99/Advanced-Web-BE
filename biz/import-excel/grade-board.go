@@ -155,7 +155,7 @@ func (sheetGradeBoardStruct *SheetGradeBoardStruct) fetchAllData() (importRowRes
 
 		ok := true
 		var studentGradeMappingInfo model.StudentGradeMapping
-		studentGradeMappingInfo.Student.ClassroomID = 14
+		studentGradeMappingInfo.Student.ClassroomID = sheetGradeBoardStruct.ClassroomID
 
 		// ---
 		responseMessage := ""
@@ -232,7 +232,6 @@ func (sheetGradeBoardStruct *SheetGradeBoardStruct) insertData(importRowResponse
 		if !ok00 {
 			if err := model.DBInstance.Create(&newStudentGradeMapping.Student).Error; err == nil {
 				sheetGradeBoardStruct.ExistedStudentCodeMap[newStudentGradeMapping.Student.Code] = newStudentGradeMapping.Student
-
 				newStudentGradeMapping.StudentID = newStudentGradeMapping.Student.ID
 			}
 		} else {
