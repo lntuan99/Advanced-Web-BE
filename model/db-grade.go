@@ -48,6 +48,7 @@ type GradeRes struct {
 	MaxPoint      float32 `json:"maxPoint"`
 	Percent       uint    `json:"percent"`
 	OrdinalNumber uint    `json:"ordinalNumber"`
+	IsFinalized   bool    `json:"isFinalized"`
 }
 
 func (grade Grade) ToRes() GradeRes {
@@ -58,5 +59,6 @@ func (grade Grade) ToRes() GradeRes {
 		MaxPoint:      grade.MaxPoint,
 		Percent:       grade.Percent,
 		OrdinalNumber: grade.OrdinalNumber,
+		IsFinalized:   grade.IsFinalized,
 	}
 }
