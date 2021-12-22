@@ -86,7 +86,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		}
 	}
 
-	var birthday *time.Time
+	var birthday = &time.Time{}
 	if registerAccountInfo.Birthday != 0 {
 		*birthday = time.Unix(registerAccountInfo.Birthday, 0)
 	} else {
