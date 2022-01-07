@@ -104,6 +104,12 @@ func Initialize() *gin.Engine {
 				gradeStructureBoardRoute.POST("/:id/export-grade-board", api_grade.HandlerExportGradeBoardByClassroomID)
 				gradeStructureBoardRoute.POST("/:id/import-grade-board", api_grade.HandlerImportGradeBoardByClassroomID)
 			}
+
+			gradeStudentRoute := gradeStructureRoute.Group("/student")
+			{
+				// this id is classroom ID
+				gradeStudentRoute.GET("/:id", api_grade.HandlerGetGradeBoardForStudentInClassroom)
+			}
 		}
 	}
 

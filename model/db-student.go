@@ -27,8 +27,8 @@ func (student Student) ToRes() StudentRes {
 	}
 }
 
-func (student Student) MappedStudentInformationToResponseStudentGradeInClassroom(classroomID uint) ResponseStudentGradeInClassroom {
-	totalGrade, maxTotalGrade, gradeArray := student.GetAllGradeInClassroom(classroomID)
+func (student Student) MappedStudentInformationToResponseStudentGradeInClassroom(classroomID uint, isFinalized *bool) ResponseStudentGradeInClassroom {
+	totalGrade, maxTotalGrade, gradeArray := student.GetAllGradeInClassroom(classroomID, isFinalized)
 
 	return ResponseStudentGradeInClassroom{
 		StudentRes:    student.ToRes(),
@@ -40,14 +40,22 @@ func (student Student) MappedStudentInformationToResponseStudentGradeInClassroom
 	}
 }
 
-func (student Student) GetAllGradeInClassroom(classroomID uint) (totalGrade float32, maxTotalGrade float32, result []StudentGradeMappingRes) {
+func (student Student) GetAllGradeInClassroom(classroomID uint, isFinalized *bool) (totalGrade float32, maxTotalGrade float32, result []StudentGradeMappingRes) {
 	result = make([]StudentGradeMappingRes, 0)
 
 	// Find all grade in class
 	var gradeArray = make([]Grade, 0)
-	DBInstance.
-		Order("ordinal_number ASC").
-		Find(&gradeArray, "classroom_id = ?", classroomID)
+
+	if isFinalized != nil {
+		DBInstance.
+			Where("is_finalized = ?", *isFinalized).
+			Order("ordinal_number ASC").
+			Find(&gradeArray, "classroom_id = ?", classroomID)
+	} else {
+		DBInstance.
+			Order("ordinal_number ASC").
+			Find(&gradeArray, "classroom_id = ?", classroomID)
+	}
 
 	// Check student is mapped with all grade
 	var studentGradeMappingArray = make([]StudentGradeMapping, 0)

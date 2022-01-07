@@ -91,7 +91,7 @@ func Initialize() {
 
 func _autoMigrateTables() {
 	_ = DBInstance.AutoMigrate(
-		// TODO: Migrate other library tables here !!!
+		// TODO: Migrate other tables here !!!
 		&Account{},
 		&User{},
 		&UserRole{},
@@ -100,6 +100,7 @@ func _autoMigrateTables() {
 		&Grade{},
 		&Student{},
 		&StudentGradeMapping{},
+		&GradeReviewRequested{},
 	)
 }
 

@@ -253,7 +253,7 @@ func MethodGetGradeBoardByClassroomID(c *gin.Context) (bool, string, interface{}
 	// Find all user grade mapping in classroom
 	var dataResponse = make([]model.ResponseStudentGradeInClassroom, 0)
 	for _, student := range classroom.StudentArray {
-		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID)
+		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID, nil)
 		dataResponse = append(dataResponse, studentGradeResponse)
 	}
 
@@ -271,7 +271,7 @@ func MethodExportGradeBoardByClassroomID(c *gin.Context) (bool, string, interfac
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	// Check user is a teacher in class
+	// validate user is a teacher in class
 	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
 	if !ok {
 		return false, base.CodeBadRequest, nil
@@ -301,7 +301,7 @@ func MethodExportGradeBoardByClassroomID(c *gin.Context) (bool, string, interfac
 
 	var responseStudentGradeInClassroomArray = make([]model.ResponseStudentGradeInClassroom, len(classroom.StudentArray))
 	for i, student := range classroom.StudentArray {
-		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID)
+		var studentGradeResponse = student.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID, nil)
 		responseStudentGradeInClassroomArray[i] = studentGradeResponse
 	}
 
@@ -346,4 +346,33 @@ func MethodImportGradeBoardByClassroomID(c *gin.Context) (bool, string, interfac
 	}
 
 	return true, base.CodeSuccess, importResponseArray
+}
+
+func MethodGetGradeBoardForStudentInClassroom(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate user is a student in classroom
+	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok || mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
+		return false, base.CodeUserIsNotAStudentInClass, nil
+	}
+
+	// Find student mapping this user in classroom
+	var mappingStudent model.Student
+	model.DBInstance.
+		Preload("User").
+		Where("code = ? and classroom_id = ?", user.Code, classroom.ID).
+		First(&mappingStudent)
+
+	var isFinalized = true
+
+	return true, base.CodeSuccess, mappingStudent.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID, &isFinalized)
 }
