@@ -109,6 +109,8 @@ func Initialize() *gin.Engine {
 			{
 				// this id is classroom ID
 				gradeStudentRoute.GET("/:id", api_grade.HandlerGetGradeBoardForStudentInClassroom)
+				gradeStudentRoute.POST("/:id/:grade-id", api_grade.HandlerCreateGradeReviewRequested)
+				gradeStudentRoute.POST("/:id/:grade-id/comment", api_grade.HandlerCreateCommentInGradeReviewRequested)
 			}
 		}
 	}

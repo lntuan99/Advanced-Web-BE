@@ -19,8 +19,8 @@ type PostRegisterAccount struct {
 }
 
 type PostLoginAccount struct {
-	Username string `form:"username" json:"username"`
-	Password string `form:"password" json:"password"`
+	Username string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
 type PostGoogleLogin struct {
@@ -40,15 +40,15 @@ type PostInviteToClassroom struct {
 }
 
 type PostCreateGrade struct {
-	ClassroomID uint    `json:"classroomId"`
-	Name        string  `json:"name"`
-	MaxPoint    float32 `json:"maxPoint"`
+	ClassroomID uint    `json:"classroomId" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	MaxPoint    float32 `json:"maxPoint" binding:"required"`
 }
 
 type PostUpdateGrade struct {
-	ID            uint    `json:"id"`
+	ID            uint    `json:"id" binding:"required"`
 	Name          string  `json:"name"`
-	MaxPoint      float32 `json:"maxPoint"`
+	MaxPoint      float32 `json:"maxPoint" `
 	OrdinalNumber uint    `json:"ordinalNumber"`
 	IsFinalized   bool    `json:"isFinalized"`
 }
@@ -60,5 +60,15 @@ type PostInputGradeForAStudent struct {
 }
 
 type PostExportGradeBoard struct {
-	GradeIDArray []uint `json:"gradeIdArray"`
+	GradeIDArray []uint `json:"gradeIdArray" binding:"required"`
+}
+
+type PostCreateGradeReviewRequested struct {
+	StudentExpectation float32 `json:"studentExpectation" binding:"required"`
+	StudentExplanation string  `json:"studentExplanation" binding:"required"`
+}
+
+type PostCreateCommentInGradeReviewRequested struct {
+	GradeReviewRequestedID uint   `json:"gradeReviewRequestedId" binding:"required"`
+	Comment                string `json:"comment" binding:"required"`
 }

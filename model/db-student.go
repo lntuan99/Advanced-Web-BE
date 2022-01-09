@@ -19,7 +19,7 @@ type StudentRes struct {
 }
 
 func (student Student) ToRes() StudentRes {
-	DBInstance.First(&student.User, student.Code)
+	DBInstance.First(&student.User, "code = ?", student.Code)
 
 	return StudentRes{
 		StudentID: student.ID,

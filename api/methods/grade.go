@@ -376,3 +376,144 @@ func MethodGetGradeBoardForStudentInClassroom(c *gin.Context) (bool, string, int
 
 	return true, base.CodeSuccess, mappingStudent.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID, &isFinalized)
 }
+
+func MethodCreateGradeReviewRequested(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	gradeID := util.ToUint(c.Param("grade-id"))
+
+	// Validate classroom
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate grade already belong to classroom
+	var dbGrade model.Grade
+	model.DBInstance.First(&dbGrade, gradeID)
+	if dbGrade.ClassroomID != classroom.ID {
+		return false, base.CodeGradeNotBelongToClassroom, nil
+	}
+
+	// Validate user is a student in classroom
+	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok || mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
+		return false, base.CodeUserIsNotAStudentInClass, nil
+	}
+
+	var gradeReviewRequestedInfo req_res.PostCreateGradeReviewRequested
+	if err := c.ShouldBindJSON(&gradeReviewRequestedInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Find student mapping this user in classroom
+	var mappingStudent model.Student
+	model.DBInstance.
+		Preload("User").
+		Where("code = ? and classroom_id = ?", user.Code, classroom.ID).
+		First(&mappingStudent)
+
+	// Find student grade mapping
+	var dbStudentGradeMapping model.StudentGradeMapping
+	model.DBInstance.
+		Preload("Student").
+		Preload("Grade").
+		Where("grade_id = ? AND student_id = ?", gradeID, mappingStudent.ID).
+		First(&dbStudentGradeMapping)
+
+	var dbGradeReviewRequested model.GradeReviewRequested
+	model.DBInstance.
+		Preload("Comments").
+		Where("student_grade_mapping_id = ?", dbStudentGradeMapping.ID).
+		First(&dbGradeReviewRequested)
+
+	if dbGradeReviewRequested.IsProcessed {
+		return false, base.CodeGradeReviewRequestedHasBeenProcessed, nil
+	}
+
+	// Mapping review requested data
+	dbGradeReviewRequested.StudentGradeMappingID = dbStudentGradeMapping.ID
+	dbGradeReviewRequested.StudentGradeMapping = dbStudentGradeMapping
+	dbGradeReviewRequested.StudentExplanation = gradeReviewRequestedInfo.StudentExplanation
+	dbGradeReviewRequested.StudentExpectation = gradeReviewRequestedInfo.StudentExpectation
+
+	model.DBInstance.Save(&dbGradeReviewRequested)
+
+	// Create notification => in future
+
+	return true, base.CodeSuccess, dbGradeReviewRequested.ToRes()
+}
+
+func MethodCreateCommentInGradeReviewRequested(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	gradeID := util.ToUint(c.Param("grade-id"))
+
+	// Validate classroom
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate grade already belong to classroom
+	var dbGrade model.Grade
+	model.DBInstance.First(&dbGrade, gradeID)
+	if dbGrade.ClassroomID != classroom.ID {
+		return false, base.CodeGradeNotBelongToClassroom, nil
+	}
+
+	// Validate user is a student in classroom
+	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeUserNotInClassroom, nil
+	}
+
+	var commentInfo req_res.PostCreateCommentInGradeReviewRequested
+	if err := c.ShouldBindJSON(&commentInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Validate grade review requested in classroom
+	var dbGradeReviewRequested model.GradeReviewRequested
+	model.DBInstance.
+		Preload("StudentGradeMapping.Student").
+		Preload("StudentGradeMapping.Grade").
+		First(&dbGradeReviewRequested, commentInfo.GradeReviewRequestedID)
+
+	if dbGradeReviewRequested.ID == 0 || dbGradeReviewRequested.StudentGradeMapping.Grade.ClassroomID != classroom.ID {
+		return false, base.CodeReviewRequestedNotInClassroom, nil
+	}
+
+	// If user is a student
+	// validate user is an owner of requested
+	if mapping.UserRole.JWTType == model.JWT_TYPE_STUDENT {
+		// Find student mapping this user in classroom
+		var mappingStudent model.Student
+		model.DBInstance.
+			Preload("User").
+			Where("code = ? and classroom_id = ?", user.Code, classroom.ID).
+			First(&mappingStudent)
+
+		if dbGradeReviewRequested.StudentGradeMapping.StudentID != mappingStudent.ID {
+			return false, base.CodeUserNotAnOwnerOfRequested, nil
+		}
+	}
+
+	var newComment model.GradeReviewRequestedComment
+	newComment.GradeReviewRequestedID = commentInfo.GradeReviewRequestedID
+	newComment.Comment = commentInfo.Comment
+	newComment.UserID = user.ID
+
+	err := model.DBInstance.Create(&newComment).Error
+	if err != nil {
+		return false, base.CodeCreateCommentFail, nil
+	}
+
+	// Create notification => in future
+
+	return true, base.CodeSuccess, newComment.ToRes()
+}

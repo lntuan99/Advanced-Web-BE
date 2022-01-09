@@ -95,3 +95,23 @@ func HandlerGetGradeBoardForStudentInClassroom(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerCreateGradeReviewRequested(c *gin.Context) {
+	success, status, data := methods.MethodCreateGradeReviewRequested(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
+func HandlerCreateCommentInGradeReviewRequested(c *gin.Context) {
+	success, status, data := methods.MethodCreateCommentInGradeReviewRequested(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
