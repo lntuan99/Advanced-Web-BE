@@ -101,6 +101,7 @@ func _autoMigrateTables() {
 		&Student{},
 		&StudentGradeMapping{},
 		&GradeReviewRequested{}, &GradeReviewRequestedComment{},
+		&Notification{}, &UserNotificationMapping{},
 	)
 }
 

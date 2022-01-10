@@ -9,6 +9,7 @@ type GradeReviewRequested struct {
 	StudentExpectation    float32
 	StudentExplanation    string
 	Comments              []GradeReviewRequestedComment
+	FinalPoint            *float32 `gorm:"default:null"`
 	IsProcessed           bool
 }
 
@@ -19,6 +20,7 @@ type GradeReviewRequestedRes struct {
 	CurrentPoint       float32                          `json:"currentPoint"`
 	StudentExpectation float32                          `json:"studentExpectation"`
 	StudentExplanation string                           `json:"studentExplanation"`
+	FinalPoint         float32                          `json:"finalPoint"`
 	Comments           []GradeReviewRequestedCommentRes `json:"comments"`
 	IsProcessed        bool                             `json:"isProcessed"`
 }
@@ -37,6 +39,11 @@ func (review GradeReviewRequested) ToRes() GradeReviewRequestedRes {
 		comments = append(comments, comment.ToRes())
 	}
 
+	finalPoint := float32(0)
+	if review.FinalPoint != nil {
+		finalPoint = *review.FinalPoint
+	}
+
 	return GradeReviewRequestedRes{
 		ID:                 review.ID,
 		StudentRes:         review.StudentGradeMapping.Student.ToRes(),
@@ -44,6 +51,7 @@ func (review GradeReviewRequested) ToRes() GradeReviewRequestedRes {
 		CurrentPoint:       review.StudentGradeMapping.Point,
 		StudentExpectation: review.StudentExpectation,
 		StudentExplanation: review.StudentExplanation,
+		FinalPoint:         finalPoint,
 		Comments:           comments,
 		IsProcessed:        review.IsProcessed,
 	}

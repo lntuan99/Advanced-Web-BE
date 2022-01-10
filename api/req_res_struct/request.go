@@ -28,9 +28,9 @@ type PostGoogleLogin struct {
 }
 
 type PostCreateClassroom struct {
-	Name        string `form:"name" json:"name"`
-	Code        string `form:"code" json:"code" `
-	Description string `form:"description" json:"description" `
+	Name        string `form:"name" json:"name" binding:"required"`
+	Code        string `form:"code" json:"code" binding:"required"`
+	Description string `form:"description" json:"description"`
 }
 
 type PostInviteToClassroom struct {
@@ -47,16 +47,16 @@ type PostCreateGrade struct {
 
 type PostUpdateGrade struct {
 	ID            uint    `json:"id" binding:"required"`
-	Name          string  `json:"name"`
-	MaxPoint      float32 `json:"maxPoint" `
-	OrdinalNumber uint    `json:"ordinalNumber"`
-	IsFinalized   bool    `json:"isFinalized"`
+	Name          string  `json:"name" binding:"required"`
+	MaxPoint      float32 `json:"maxPoint" binding:"required"`
+	OrdinalNumber uint    `json:"ordinalNumber" binding:"required"`
+	IsFinalized   bool    `json:"isFinalized" binding:"required"`
 }
 
 type PostInputGradeForAStudent struct {
-	StudentID uint    `json:"studentId"`
-	GradeID   uint    `json:"gradeId"`
-	Point     float32 `json:"point"`
+	StudentID uint    `json:"studentId" binding:"required"`
+	GradeID   uint    `json:"gradeId" binding:"required"`
+	Point     float32 `json:"point" binding:"required"`
 }
 
 type PostExportGradeBoard struct {
@@ -66,6 +66,11 @@ type PostExportGradeBoard struct {
 type PostCreateGradeReviewRequested struct {
 	StudentExpectation float32 `json:"studentExpectation" binding:"required"`
 	StudentExplanation string  `json:"studentExplanation" binding:"required"`
+}
+
+type PostMakeFinalDecisionGradeReviewRequested struct {
+	GradeReviewRequestedID uint    `json:"gradeReviewRequestedId" binding:"required"`
+	FinalPoint             float32 `json:"finalPoint" binding:"required"`
 }
 
 type PostCreateCommentInGradeReviewRequested struct {

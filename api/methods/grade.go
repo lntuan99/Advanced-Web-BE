@@ -8,6 +8,7 @@ import (
 	"advanced-web.hcmus/biz/upload"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"sort"
@@ -79,48 +80,69 @@ func MethodUpdateGrade(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeBadRequest, nil
 	}
 
-	if util.EmptyOrBlankString(gradeInfo.Name) {
-		return false, base.CodeEmptyGradeName, nil
-	}
-
 	// Check existed grade in class
-	var existedGrade model.Grade
+	var dbGrade model.Grade
 	model.DBInstance.
 		Preload("Classroom").
-		First(&existedGrade, gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
+		First(&dbGrade, gradeInfo.ID) // => model.DBInstance.First(&existedGrade, gradeInfo.GradeID)
 
-	if existedGrade.ID == 0 {
+	if dbGrade.ID == 0 {
 		return false, base.CodeGradeNotExisted, nil
 	}
 
 	// Check classroom ID existed
-	if existedGrade.Classroom.ID == 0 {
+	if dbGrade.Classroom.ID == 0 {
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, existedGrade.ClassroomID)
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, dbGrade.ClassroomID)
 	if !ok {
 		return false, base.CodeGradeUserInvalid, nil
 	}
 
 	// check name of grade existed in classroom
-	if existedGrade.Name != gradeInfo.Name {
+	if dbGrade.Name != gradeInfo.Name {
 		var existedNameGrade model.Grade
-		model.DBInstance.First(&existedNameGrade, "classroom_id = ? AND name = ?", existedGrade.ClassroomID, gradeInfo.Name)
+		model.DBInstance.First(&existedNameGrade, "classroom_id = ? AND name = ?", dbGrade.ClassroomID, gradeInfo.Name)
 
 		if existedNameGrade.ID > 0 {
 			return false, base.CodeGradeAlreadyInClassroom, nil
 		}
 	}
 
-	existedGrade.Name = gradeInfo.Name
-	existedGrade.MaxPoint = gradeInfo.MaxPoint
-	existedGrade.OrdinalNumber = gradeInfo.OrdinalNumber
-	existedGrade.IsFinalized = gradeInfo.IsFinalized
+	// If Mark Finalized
+	var createNotification = false
+	if dbGrade.IsFinalized == false && gradeInfo.IsFinalized == true {
+		createNotification = true
+	}
 
-	model.DBInstance.Save(&existedGrade)
+	dbGrade.Name = gradeInfo.Name
+	dbGrade.MaxPoint = gradeInfo.MaxPoint
+	dbGrade.OrdinalNumber = gradeInfo.OrdinalNumber
+	dbGrade.IsFinalized = gradeInfo.IsFinalized
 
-	return true, base.CodeSuccess, existedGrade.ToRes()
+	model.DBInstance.Save(&dbGrade)
+
+	if createNotification {
+		var newNotification = model.Notification{
+			Title:   fmt.Sprintf("Đã có thể xem điểm '%v' lớp '%v'", dbGrade.Name, dbGrade.Classroom.Name),
+			Message: fmt.Sprintf("Điểm '%v' lớp '%v' đã được công bố. Vui lòng nhấn vào thông báo hoặc truy cập vào lớp để xem điểm", dbGrade.Name, dbGrade.Classroom.Name),
+			Payload: fmt.Sprintf("%v", dbGrade.ID),
+			Users:   nil,
+		}
+
+		dbGrade.Classroom.GetListStudent()
+
+		for _, student := range dbGrade.Classroom.StudentArray {
+			if student.User.ID > 0 {
+				newNotification.Users = append(newNotification.Users, student.User)
+			}
+		}
+
+		model.DBInstance.Save(&newNotification)
+	}
+
+	return true, base.CodeSuccess, dbGrade.ToRes()
 }
 
 func MethodDeleteGrade(c *gin.Context) (bool, string, interface{}) {
@@ -377,6 +399,65 @@ func MethodGetGradeBoardForStudentInClassroom(c *gin.Context) (bool, string, int
 	return true, base.CodeSuccess, mappingStudent.MappedStudentInformationToResponseStudentGradeInClassroom(classroom.ID, &isFinalized)
 }
 
+func MethodGetGradeReviewRequested(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	gradeID := util.ToUint(c.Param("grade-id"))
+	reviewRequestedID := util.ToUint(c.Query("review-id"))
+
+	// Validate classroom
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate grade already belong to classroom
+	var dbGrade model.Grade
+	model.DBInstance.First(&dbGrade, gradeID)
+	if dbGrade.ClassroomID != classroom.ID {
+		return false, base.CodeGradeNotBelongToClassroom, nil
+	}
+
+	// Validate user already in classroom
+	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeUserNotInClassroom, nil
+	}
+
+	// Validate grade review requested in classroom
+	var dbGradeReviewRequested model.GradeReviewRequested
+	model.DBInstance.
+		Preload("Comments").
+		Preload("StudentGradeMapping.Student").
+		Preload("StudentGradeMapping.Grade").
+		First(&dbGradeReviewRequested, reviewRequestedID)
+
+	if dbGradeReviewRequested.ID == 0 ||
+		dbGradeReviewRequested.StudentGradeMapping.Grade.ClassroomID != classroom.ID ||
+		dbGradeReviewRequested.StudentGradeMapping.GradeID != uint(gradeID) {
+		return false, base.CodeReviewRequestedNotInClassroom, nil
+	}
+
+	// If user is a student
+	// validate user is an owner of requested
+	if mapping.UserRole.JWTType == model.JWT_TYPE_STUDENT {
+		// Find student mapping this user in classroom
+		var mappingStudent model.Student
+		model.DBInstance.
+			Preload("User").
+			Where("code = ? and classroom_id = ?", user.Code, classroom.ID).
+			First(&mappingStudent)
+
+		if dbGradeReviewRequested.StudentGradeMapping.StudentID != mappingStudent.ID {
+			return false, base.CodeUserNotAnOwnerOfRequested, nil
+		}
+	}
+
+	return true, base.CodeSuccess, dbGradeReviewRequested.ToRes()
+}
+
 func MethodCreateGradeReviewRequested(c *gin.Context) (bool, string, interface{}) {
 	userObj, _ := c.Get("user")
 	user := userObj.(model.User)
@@ -397,7 +478,7 @@ func MethodCreateGradeReviewRequested(c *gin.Context) (bool, string, interface{}
 		return false, base.CodeGradeNotBelongToClassroom, nil
 	}
 
-	// Validate user is a student in classroom
+	// Validate user already in classroom
 	ok, mapping := MiddlewareImplementUserInClassroom(user.ID, classroom.ID)
 	if !ok || mapping.UserRole.JWTType != model.JWT_TYPE_STUDENT {
 		return false, base.CodeUserIsNotAStudentInClass, nil
@@ -439,9 +520,91 @@ func MethodCreateGradeReviewRequested(c *gin.Context) (bool, string, interface{}
 	dbGradeReviewRequested.StudentExplanation = gradeReviewRequestedInfo.StudentExplanation
 	dbGradeReviewRequested.StudentExpectation = gradeReviewRequestedInfo.StudentExpectation
 
+	var createNewNotification = false
+	if dbGradeReviewRequested.ID == 0 {
+		createNewNotification = true
+	}
+
 	model.DBInstance.Save(&dbGradeReviewRequested)
 
-	// Create notification => in future
+	// Create notification
+	if createNewNotification {
+		var newNotification = model.Notification{
+			Title:   fmt.Sprintf("Có một đơn phúc khảo mới"),
+			Message: fmt.Sprintf("Học sinh '%v' lớp '%v' đã yêu cầu phúc khảo điểm '%v'", dbStudentGradeMapping.Student.Name, classroom.Name, dbGrade.Name),
+			Payload: fmt.Sprintf("%v", dbGradeReviewRequested.ID),
+			Users:   nil,
+		}
+
+		newNotification.Users = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
+		model.DBInstance.Save(&newNotification)
+	}
+
+	return true, base.CodeSuccess, dbGradeReviewRequested.ToRes()
+}
+
+func MethodMakeFinalDecisionGradeReviewRequested(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+	gradeID := util.ToUint(c.Param("grade-id"))
+
+	// Validate classroom
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// Validate grade already belong to classroom
+	var dbGrade model.Grade
+	model.DBInstance.First(&dbGrade, gradeID)
+	if dbGrade.ClassroomID != classroom.ID {
+		return false, base.CodeGradeNotBelongToClassroom, nil
+	}
+
+	//validate user is a teacher in class
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	var gradeReviewRequestedInfo req_res.PostMakeFinalDecisionGradeReviewRequested
+	if err := c.ShouldBindJSON(&gradeReviewRequestedInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Validate grade review requested in classroom
+	var dbGradeReviewRequested model.GradeReviewRequested
+	model.DBInstance.
+		Preload("Comments").
+		Preload("StudentGradeMapping.Student.User").
+		Preload("StudentGradeMapping.Grade").
+		First(&dbGradeReviewRequested, gradeReviewRequestedInfo.GradeReviewRequestedID)
+
+	if dbGradeReviewRequested.ID == 0 ||
+		dbGradeReviewRequested.StudentGradeMapping.Grade.ClassroomID != classroom.ID ||
+		dbGradeReviewRequested.StudentGradeMapping.GradeID != uint(gradeID) {
+		return false, base.CodeReviewRequestedNotInClassroom, nil
+	}
+
+	if dbGradeReviewRequested.IsProcessed {
+		return false, base.CodeGradeReviewRequestedHasBeenProcessed, nil
+	}
+
+	// Mapping review requested data
+	dbGradeReviewRequested.FinalPoint = &gradeReviewRequestedInfo.FinalPoint
+	dbGradeReviewRequested.IsProcessed = true
+
+	model.DBInstance.Save(&dbGradeReviewRequested)
+
+	var newNotification = model.Notification{
+		Title:   fmt.Sprintf("Đã có kết quả phúc khảo"),
+		Message: fmt.Sprintf("Đơn phúc khảo điểm '%v' lớp '%v' đã có kết quả", dbGradeReviewRequested.StudentGradeMapping.Grade.Name, classroom.Name),
+		Payload: fmt.Sprintf("%v", dbGradeReviewRequested.ID),
+		Users:   []model.User{dbGradeReviewRequested.StudentGradeMapping.Student.User},
+	}
+	model.DBInstance.Save(&newNotification)
 
 	return true, base.CodeSuccess, dbGradeReviewRequested.ToRes()
 }
@@ -480,11 +643,13 @@ func MethodCreateCommentInGradeReviewRequested(c *gin.Context) (bool, string, in
 	// Validate grade review requested in classroom
 	var dbGradeReviewRequested model.GradeReviewRequested
 	model.DBInstance.
-		Preload("StudentGradeMapping.Student").
+		Preload("StudentGradeMapping.Student.User").
 		Preload("StudentGradeMapping.Grade").
 		First(&dbGradeReviewRequested, commentInfo.GradeReviewRequestedID)
 
-	if dbGradeReviewRequested.ID == 0 || dbGradeReviewRequested.StudentGradeMapping.Grade.ClassroomID != classroom.ID {
+	if dbGradeReviewRequested.ID == 0 ||
+		dbGradeReviewRequested.StudentGradeMapping.Grade.ClassroomID != classroom.ID ||
+		dbGradeReviewRequested.StudentGradeMapping.GradeID != uint(gradeID) {
 		return false, base.CodeReviewRequestedNotInClassroom, nil
 	}
 
@@ -513,7 +678,18 @@ func MethodCreateCommentInGradeReviewRequested(c *gin.Context) (bool, string, in
 		return false, base.CodeCreateCommentFail, nil
 	}
 
-	// Create notification => in future
+	// Create notification
+	// Only push notification for student if owner of comment is teacher
+	if mapping.UserRole.JWTType == model.JWT_TYPE_TEACHER {
+		var newNotification = model.Notification{
+			Title:   fmt.Sprintf("Có một bình luận mới"),
+			Message: fmt.Sprintf("Giáo viên '%v' lớp '%v' đã bình luận vào đơn phúc khảo của bạn", user.Name, classroom.Name),
+			Payload: fmt.Sprintf("%v", newComment.GradeReviewRequestedID),
+			Users:   []model.User{dbGradeReviewRequested.StudentGradeMapping.Student.User},
+		}
+
+		model.DBInstance.Save(&newNotification)
+	}
 
 	return true, base.CodeSuccess, newComment.ToRes()
 }

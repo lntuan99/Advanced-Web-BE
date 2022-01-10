@@ -96,8 +96,28 @@ func HandlerGetGradeBoardForStudentInClassroom(c *gin.Context) {
 	}
 }
 
+func HandlerGetGradeReviewRequested(c *gin.Context) {
+	success, status, data := methods.MethodGetGradeReviewRequested(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
 func HandlerCreateGradeReviewRequested(c *gin.Context) {
 	success, status, data := methods.MethodCreateGradeReviewRequested(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
+func HandlerMakeFinalDecisionGradeReviewRequested(c *gin.Context) {
+	success, status, data := methods.MethodMakeFinalDecisionGradeReviewRequested(c)
 
 	if !success {
 		base.ResponseError(c, status)

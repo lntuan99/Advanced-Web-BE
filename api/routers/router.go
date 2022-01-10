@@ -6,6 +6,7 @@ import (
 	api_account "advanced-web.hcmus/api/routers/api-account"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
 	api_grade "advanced-web.hcmus/api/routers/api-grade"
+	api_notification "advanced-web.hcmus/api/routers/api-notification"
 	api_status "advanced-web.hcmus/api/routers/api-status"
 	api_user "advanced-web.hcmus/api/routers/api-user"
 	"advanced-web.hcmus/config"
@@ -109,10 +110,18 @@ func Initialize() *gin.Engine {
 			{
 				// this id is classroom ID
 				gradeStudentRoute.GET("/:id", api_grade.HandlerGetGradeBoardForStudentInClassroom)
+				gradeStudentRoute.GET("/:id/:grade-id", api_grade.HandlerGetGradeReviewRequested)
 				gradeStudentRoute.POST("/:id/:grade-id", api_grade.HandlerCreateGradeReviewRequested)
+				gradeStudentRoute.PUT("/:id/:grade-id", api_grade.HandlerMakeFinalDecisionGradeReviewRequested)
 				gradeStudentRoute.POST("/:id/:grade-id/comment", api_grade.HandlerCreateCommentInGradeReviewRequested)
 			}
 		}
+	}
+
+	notificationRoute := routeVersion01.Group("notification")
+	notificationRoute.Use(authMiddleware.MiddlewareFuncUser())
+	{
+		notificationRoute.GET("/list", api_notification.HandlerGetListNotification)
 	}
 
 	return r
