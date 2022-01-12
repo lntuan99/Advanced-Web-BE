@@ -25,6 +25,7 @@ type User struct {
 	IdentityCard string
 	Enabled      bool
 	ExpiredAt    *time.Time
+	IsAdmin      bool        `gorm:"default:false"`
 	Classrooms   []Classroom `gorm:"many2many:user_classroom_mappings"`
 }
 

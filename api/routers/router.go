@@ -124,5 +124,12 @@ func Initialize() *gin.Engine {
 		notificationRoute.GET("/list", api_notification.HandlerGetListNotification)
 	}
 
+	adminRoute := routeVersion01.Group("admin")
+	adminRoute.Use(authMiddleware.MiddlewareFuncUser())
+	adminRoute.Use(authMiddleware.MiddlewareFuncAdminUser())
+	{
+
+	}
+
 	return r
 }
