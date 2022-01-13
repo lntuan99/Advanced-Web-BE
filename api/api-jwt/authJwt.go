@@ -1,7 +1,6 @@
 package api_jwt
 
 import (
-	"advanced-web.hcmus/api/base"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
 	"crypto/rsa"
@@ -317,18 +316,6 @@ func (mw *GinJWTMiddleware) MiddlewareFuncUser() gin.HandlerFunc {
 	}
 }
 
-func (mw *GinJWTMiddleware) MiddlewareFuncAdminUser() gin.HandlerFunc {
-	if err := mw.MiddlewareInit(); err != nil {
-		return func(c *gin.Context) {
-			mw.unauthorized(c, http.StatusInternalServerError, mw.HTTPStatusMessageFunc(err, nil))
-		}
-	}
-
-	return func(c *gin.Context) {
-		mw.middlewareImplAdminUser(c)
-	}
-}
-
 func (mw *GinJWTMiddleware) middlewareImplUser(c *gin.Context) {
 	token, err := mw.parseToken(c)
 
@@ -371,17 +358,6 @@ func (mw *GinJWTMiddleware) middlewareImplUser(c *gin.Context) {
 	}
 
 	c.Next()
-}
-
-func (mw *GinJWTMiddleware) middlewareImplAdminUser(c *gin.Context) {
-	userObj, _ := c.Get("user")
-	user := userObj.(model.User)
-	if user.IsAdmin {
-		c.Next()
-	} else {
-		base.ResponseError(c, base.CodePermissionDenied)
-		c.Abort()
-	}
 }
 
 func (mw *GinJWTMiddleware) SignedString(token *jwt.Token) (string, error) {

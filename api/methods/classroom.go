@@ -268,13 +268,13 @@ func MethodInviteToClassroom(c *gin.Context) (bool, string, interface{}) {
 
 	// Send invite teacher
 	r1 := smtp.NewRequest(inviteToClassroomInfo.TeacherEmailArray, "JOIN MY CLASS AS A TEACHER", "JOIN MY CLASS AS A TEACHER")
-	if err1 := r1.ParseTemplate("./public/assets/inviteTemplate.html", teacherTemplateData); err1 == nil {
+	if err1 := r1.ParseTemplate("./public/assets/email-template/invite-template.html", teacherTemplateData); err1 == nil {
 		r1.SendEmail()
 	}
 
 	// Send invite student
 	r2 := smtp.NewRequest(inviteToClassroomInfo.StudentEmailArray, "JOIN MY CLASS AS A STUDENT", "JOIN MY CLASS AS A STUDENT")
-	if err2 := r2.ParseTemplate("./public/assets/inviteTemplate.html", studentTemplateData); err2 == nil {
+	if err2 := r2.ParseTemplate("./public/assets/email-template/invite-template.html", studentTemplateData); err2 == nil {
 		r2.SendEmail()
 	}
 

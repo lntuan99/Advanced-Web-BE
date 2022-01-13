@@ -113,3 +113,39 @@ func MethodGetUserProfile(c *gin.Context) (bool, string, interface{}) {
 
 	return true, base.CodeSuccess, user.ToRes()
 }
+
+func MethodVerifyCode(c *gin.Context) (bool, string, interface{}) {
+	verifyCode := c.Query("code")
+
+	// Validate verify code
+	if util.EmptyOrBlankString(verifyCode) {
+		return false, base.CodeInvalidVerifyCode, nil
+	}
+
+	var dbVerifyCode model.VerifyCode
+	model.DBInstance.
+		Preload("User").
+		First(&dbVerifyCode, "code = ?", verifyCode)
+
+	if dbVerifyCode.ID == 0 || dbVerifyCode.UserID == 0 || dbVerifyCode.User.ID == 0 {
+		return false, base.CodeInvalidVerifyCode, nil
+	}
+
+	if dbVerifyCode.Type == model.VERIFY_CODE_TYPE_VERIFY_EMAIL {
+		if err := model.DBInstance.
+			Model(&model.User{}).
+			Where("id = ?", dbVerifyCode.UserID).
+			Updates(model.User{IsEmailVerified: true}).Error;
+			err != nil {
+			return false, base.CodeVerifyEmailFail, nil
+		}
+	}
+
+	if dbVerifyCode.Type == model.VERIFY_CODE_TYPE_FORGOT_PASSWORD {
+		// in future
+	}
+
+	model.DBInstance.Delete(&dbVerifyCode)
+
+	return true, base.CodeSuccess, nil
+}

@@ -15,32 +15,33 @@ const (
 
 type User struct {
 	gorm.Model
-	Name         string `gorm:"index:user_name_idx"`
-	Code         string `gorm:"index:user_code_unique_idx"`
-	Email        string `gorm:"index:user_email_unique_idx"`
-	Phone        string `gorm:"index:user_phone_unique_idx"`
-	Birthday     *time.Time
-	Gender       uint
-	Avatar       string
-	IdentityCard string
-	Enabled      bool
-	ExpiredAt    *time.Time
-	IsAdmin      bool        `gorm:"default:false"`
-	Classrooms   []Classroom `gorm:"many2many:user_classroom_mappings"`
+	Name            string `gorm:"index:user_name_idx"`
+	Code            string `gorm:"index:user_code_unique_idx"`
+	Email           string `gorm:"index:user_email_unique_idx"`
+	Phone           string `gorm:"index:user_phone_unique_idx"`
+	Birthday        *time.Time
+	Gender          uint
+	Avatar          string
+	IdentityCard    string
+	Enabled         bool
+	ExpiredAt       *time.Time
+	IsEmailVerified bool        `gorm:"default:false"`
+	Classrooms      []Classroom `gorm:"many2many:user_classroom_mappings"`
 }
 
 type UserRes struct {
-	Username     string `json:"username"`
-	Name         string `json:"name"`
-	Code         string `json:"code"`
-	Email        string `json:"email"`
-	Phone        string `json:"phone"`
-	Birthday     int64  `json:"birthday"` //Unix
-	Gender       uint   `json:"gender"`
-	Avatar       string `json:"avatar"`
-	IdentityCard string `json:"identityCard"`
-	Enabled      bool   `json:"enabled"`
-	ExpiredAt    int64  `json:"expiredAt"`
+	Username        string `json:"username"`
+	Name            string `json:"name"`
+	Code            string `json:"code"`
+	Email           string `json:"email"`
+	Phone           string `json:"phone"`
+	Birthday        int64  `json:"birthday"` //Unix
+	Gender          uint   `json:"gender"`
+	Avatar          string `json:"avatar"`
+	IdentityCard    string `json:"identityCard"`
+	Enabled         bool   `json:"enabled"`
+	ExpiredAt       int64  `json:"expiredAt"`
+	IsEmailVerified bool   `json:"IsEmailVerified"`
 }
 
 func (user User) ToRes() UserRes {

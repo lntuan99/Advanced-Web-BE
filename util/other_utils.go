@@ -697,7 +697,7 @@ func HashingPassword(password string) (string, bool) {
 	return string(hashPassword), true
 }
 
-func CompareHashingPasswordAndPassWord(hashedPassword string, password string) bool {
+func CompareHashingPasswordAndPassword(hashedPassword string, password string) bool {
 	biHashedPassword := []byte(hashedPassword)
 	biPassword := []byte(password)
 	err := bcrypt.CompareHashAndPassword(biHashedPassword, biPassword)

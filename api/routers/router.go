@@ -56,6 +56,10 @@ func Initialize() *gin.Engine {
 	}
 
 	userRoute := routeVersion01.Group("user")
+
+	// this api no need authorization
+	userRoute.GET("/verify", api_user.HandlerVerifyCode)
+
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
 		userRoute.GET("/", api_user.HandlerGetUserProfile)
@@ -126,7 +130,6 @@ func Initialize() *gin.Engine {
 
 	adminRoute := routeVersion01.Group("admin")
 	adminRoute.Use(authMiddleware.MiddlewareFuncUser())
-	adminRoute.Use(authMiddleware.MiddlewareFuncAdminUser())
 	{
 
 	}

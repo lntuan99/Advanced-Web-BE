@@ -4,7 +4,10 @@ import (
 	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
+	"advanced-web.hcmus/config"
+	"advanced-web.hcmus/config/constants"
 	"advanced-web.hcmus/model"
+	"advanced-web.hcmus/services/smtp"
 	"advanced-web.hcmus/util"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
@@ -29,8 +32,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 	}
 
 	// Check password valid
-	registerAccountInfo.Password = util.StandardizedString(registerAccountInfo.Password)
-	if util.EmptyOrBlankString(registerAccountInfo.Password) {
+	if util.EmptyOrBlankString(util.StandardizedString(registerAccountInfo.Password)) {
 		return false, base.CodeEmptyPassword, nil
 	}
 
@@ -142,6 +144,39 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, code, nil
 	}
 
+	if !util.EmptyOrBlankString(newAccount.GoogleID) {
+		newUser.IsEmailVerified = true
+		model.DBInstance.Model(&newUser).Updates(model.User{IsEmailVerified: true})
+	} else {
+		// Generate verify code
+		verifyCode := fmt.Sprintf("%v_%v_%v_%v", newUser.Name, newUser.Code, newUser.Email, time.Now().Unix())
+		verifyCode = util.HexSha256String([]byte(verifyCode))
+		verifyCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
+
+		// Save this verify code into database
+		model.DBInstance.Create(&model.VerifyCode{
+			Code:   verifyCode,
+			UserID: newUser.ID,
+			Type:   model.VERIFY_CODE_TYPE_VERIFY_EMAIL,
+		})
+
+		// Generate verify link
+		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode)
+
+		type TemplateData struct {
+			URL string
+		}
+		verifyEmailTemplate := TemplateData{
+			URL: verifyLink,
+		}
+
+		// Send verify link
+		r := smtp.NewRequest([]string{newUser.Email}, "VERIFY YOUR EMAIL", "VERIFY YOUR EMAIL")
+		if err1 := r.ParseTemplate("./public/assets/email-template/verify-email-template.html", verifyEmailTemplate); err1 == nil {
+			r.SendEmail()
+		}
+	}
+
 	userLogin := generateUserToken(newUser)
 	return true, base.CodeSuccess, userLogin
 }
@@ -163,15 +198,16 @@ func MethodLoginAccount(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeEmptyPassword, nil
 	}
 
-	if !util.CompareHashingPasswordAndPassWord(existedUsername.Password, loginAccountInfo.Password) {
+	if !util.CompareHashingPasswordAndPassword(existedUsername.Password, loginAccountInfo.Password) {
 		return false, base.CodeWrongPassword, nil
 	}
 
 	userLogin := req_res.RespondUserLogin{
-		Token:     "",
-		ID:        0,
-		Name:      "",
-		AvatarURL: "",
+		Token:           "",
+		ID:              0,
+		Name:            "",
+		AvatarURL:       "",
+		IsEmailVerified: false,
 	}
 
 	_, isExpired, user := model.User{}.FindUserByID(existedUsername.UserID)
@@ -193,10 +229,11 @@ func MethodGoogleLogin(c *gin.Context) (bool, string, interface{}) {
 	existedGoogleID := model.Account{}.FindAccountByGoogleID(googleLoginInfo.GoogleID)
 	if existedGoogleID.ID > 0 {
 		userLogin := req_res.RespondUserLogin{
-			Token:     "",
-			ID:        0,
-			Name:      "",
-			AvatarURL: "",
+			Token:           "",
+			ID:              0,
+			Name:            "",
+			AvatarURL:       "",
+			IsEmailVerified: false,
 		}
 
 		_, isExpired, user := model.User{}.FindUserByID(existedGoogleID.UserID)
@@ -214,10 +251,11 @@ func MethodGoogleLogin(c *gin.Context) (bool, string, interface{}) {
 
 func generateUserToken(user model.User) req_res.RespondUserLogin {
 	result := req_res.RespondUserLogin{
-		Token:     "",
-		ID:        0,
-		Name:      "",
-		AvatarURL: "",
+		Token:           "",
+		ID:              0,
+		Name:            "",
+		AvatarURL:       "",
+		IsEmailVerified: false,
 	}
 
 	mw := api_jwt.GwtAuthMiddleware
@@ -239,10 +277,11 @@ func generateUserToken(user model.User) req_res.RespondUserLogin {
 	}
 
 	result = req_res.RespondUserLogin{
-		Token:     tokenString,
-		ID:        user.ID,
-		Name:      user.Name,
-		AvatarURL: util.SubUrlToFullUrl(user.Avatar),
+		Token:           tokenString,
+		ID:              user.ID,
+		Name:            user.Name,
+		AvatarURL:       util.SubUrlToFullUrl(user.Avatar),
+		IsEmailVerified: user.IsEmailVerified,
 	}
 
 	return result

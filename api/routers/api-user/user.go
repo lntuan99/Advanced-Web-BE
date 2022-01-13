@@ -25,3 +25,13 @@ func HandlerGetUserProfile(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerVerifyCode(c *gin.Context) {
+	success, status, data := methods.MethodVerifyCode(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
