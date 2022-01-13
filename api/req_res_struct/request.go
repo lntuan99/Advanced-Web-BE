@@ -50,7 +50,7 @@ type PostUpdateGrade struct {
 	Name          string  `json:"name" binding:"required"`
 	MaxPoint      float32 `json:"maxPoint" binding:"required"`
 	OrdinalNumber uint    `json:"ordinalNumber" binding:"required"`
-	IsFinalized   bool    `json:"isFinalized" binding:"required"`
+	IsFinalized   bool    `json:"isFinalized"`
 }
 
 type PostInputGradeForAStudent struct {
