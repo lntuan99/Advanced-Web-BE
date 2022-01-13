@@ -1,6 +1,8 @@
 package methods
 
 import (
+	"advanced-web.hcmus/config"
+	"advanced-web.hcmus/services/smtp"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -131,21 +133,101 @@ func MethodVerifyCode(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeInvalidVerifyCode, nil
 	}
 
+	var data interface{} = nil
 	if dbVerifyCode.Type == model.VERIFY_CODE_TYPE_VERIFY_EMAIL {
 		if err := model.DBInstance.
 			Model(&model.User{}).
 			Where("id = ?", dbVerifyCode.UserID).
-			Updates(model.User{IsEmailVerified: true}).Error;
-			err != nil {
+			Updates(model.User{IsEmailVerified: true}).Error; err != nil {
 			return false, base.CodeVerifyEmailFail, nil
 		}
 	}
 
 	if dbVerifyCode.Type == model.VERIFY_CODE_TYPE_FORGOT_PASSWORD {
-		// in future
+		userLogin := generateUserToken(dbVerifyCode.User)
+		data = userLogin
 	}
 
 	model.DBInstance.Delete(&dbVerifyCode)
+
+	return true, base.CodeSuccess, data
+}
+
+func MethodForgotPassword(c *gin.Context) (bool, string, interface{}) {
+	email := c.Query("email")
+
+	// validate existed user email
+	if util.EmptyOrBlankString(email) {
+		return false, base.CodeEmptyEmail, nil
+	}
+	if !util.IsEmailValid(email) {
+		return false, base.CodeInvalidEmailFormat, nil
+	}
+	existed, isExpired, user := model.User{}.FindUserByEmail(email)
+	if !existed || isExpired {
+		return false, base.CodeFindUserFail, nil
+	}
+
+	if user.IsEmailVerified {
+		verifyCode := model.VerifyCode{}.CreateVerifyCode(user, model.VERIFY_CODE_TYPE_FORGOT_PASSWORD)
+		model.DBInstance.Create(&verifyCode)
+
+		// Generate verify link
+		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode.Code)
+
+		type TemplateData struct {
+			URL string
+		}
+		forgotPasswordTemplate := TemplateData{
+			URL: verifyLink,
+		}
+
+		// Send verify link
+		r := smtp.NewRequest([]string{user.Email}, "RENEW YOUR PASSWORD", "RENEW YOUR PASSWORD")
+		if err1 := r.ParseTemplate("./public/assets/email-template/forgot-password-template.html", forgotPasswordTemplate); err1 == nil {
+			r.SendEmail()
+		}
+	}
+
+	return true, base.CodeSuccess, nil
+}
+
+func MethodUpdatePassword(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	var forgotPassword req_res.PostForgotPassword
+	if err := c.ShouldBind(&forgotPassword); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Check password valid
+	if util.EmptyOrBlankString(util.StandardizedString(forgotPassword.Password)) {
+		return false, base.CodeEmptyPassword, nil
+	}
+
+	if forgotPassword.Password != forgotPassword.RetypePassword {
+		return false, base.CodePasswordAndRetypeDoesNotMatch, nil
+	}
+
+	// Find account mapping this user
+	var dbAccount model.Account
+	model.DBInstance.First(&dbAccount, "user_id = ?", user.ID)
+	if dbAccount.ID == 0 {
+		return false, base.CodeUpdatePasswordFail, nil
+	}
+
+	hashedPassword, ok := util.HashingPassword(forgotPassword.Password)
+	if !ok {
+		return false, base.CodeUpdatePasswordFail, nil
+	}
+
+	if err := model.DBInstance.
+		Model(&dbAccount).
+		Updates(model.Account{Password: hashedPassword}).
+		Error; err != nil {
+		return false, base.CodeUpdatePasswordFail, nil
+	}
 
 	return true, base.CodeSuccess, nil
 }

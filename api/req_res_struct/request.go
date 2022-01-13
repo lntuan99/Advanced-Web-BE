@@ -77,3 +77,8 @@ type PostCreateCommentInGradeReviewRequested struct {
 	GradeReviewRequestedID uint   `json:"gradeReviewRequestedId" binding:"required"`
 	Comment                string `json:"comment" binding:"required"`
 }
+
+type PostForgotPassword struct {
+	Password       string `form:"password" json:"password" binding:"required"`
+	RetypePassword string `form:"retypePassword" json:"retypePassword" binding:"required"`
+}

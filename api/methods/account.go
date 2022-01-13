@@ -5,7 +5,6 @@ import (
 	"advanced-web.hcmus/api/base"
 	req_res "advanced-web.hcmus/api/req_res_struct"
 	"advanced-web.hcmus/config"
-	"advanced-web.hcmus/config/constants"
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/services/smtp"
 	"advanced-web.hcmus/util"
@@ -148,17 +147,8 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		newUser.IsEmailVerified = true
 		model.DBInstance.Model(&newUser).Updates(model.User{IsEmailVerified: true})
 	} else {
-		// Generate verify code
-		verifyCode := fmt.Sprintf("%v_%v_%v_%v", newUser.Name, newUser.Code, newUser.Email, time.Now().Unix())
-		verifyCode = util.HexSha256String([]byte(verifyCode))
-		verifyCode += fmt.Sprintf("%v", time.Now().Unix()%constants.PRIME_NUMBER_FOR_MOD)
-
-		// Save this verify code into database
-		model.DBInstance.Create(&model.VerifyCode{
-			Code:   verifyCode,
-			UserID: newUser.ID,
-			Type:   model.VERIFY_CODE_TYPE_VERIFY_EMAIL,
-		})
+		verifyCode := model.VerifyCode{}.CreateVerifyCode(newUser, model.VERIFY_CODE_TYPE_VERIFY_EMAIL)
+		model.DBInstance.Create(&verifyCode)
 
 		// Generate verify link
 		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode)

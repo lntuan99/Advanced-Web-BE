@@ -35,3 +35,23 @@ func HandlerVerifyCode(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerForgotPassword(c *gin.Context) {
+	success, status, data := methods.MethodForgotPassword(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}
+
+func HandlerUpdatePassword(c *gin.Context) {
+	success, status, data := methods.MethodUpdatePassword(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

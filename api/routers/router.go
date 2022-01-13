@@ -57,8 +57,9 @@ func Initialize() *gin.Engine {
 
 	userRoute := routeVersion01.Group("user")
 
-	// this api no need authorization
+	// these api no need authorization
 	userRoute.GET("/verify", api_user.HandlerVerifyCode)
+	userRoute.GET("/forgot-password", api_user.HandlerForgotPassword)
 
 	userRoute.Use(authMiddleware.MiddlewareFuncUser())
 	{
@@ -69,6 +70,8 @@ func Initialize() *gin.Engine {
 
 		// new: PUT
 		// userRoute.PUT("/", api_user.HandlerUpdateUserProfile)
+
+		userRoute.PUT("/update-password", api_user.HandlerUpdatePassword)
 	}
 
 	classroomRoute := routeVersion01.Group("classroom")
