@@ -304,6 +304,18 @@ func (mw *GinJWTMiddleware) MiddlewareInit() error {
 }
 
 // MiddlewareFunc makes GinJWTMiddleware implement the Middleware interface.
+func (mw *GinJWTMiddleware) MiddlewareFuncAdminUser() gin.HandlerFunc {
+	if err := mw.MiddlewareInit(); err != nil {
+		return func(c *gin.Context) {
+			mw.unauthorized(c, http.StatusInternalServerError, mw.HTTPStatusMessageFunc(err, nil))
+		}
+	}
+
+	return func(c *gin.Context) {
+		mw.middlewareImplAdminUser(c)
+	}
+}
+
 func (mw *GinJWTMiddleware) MiddlewareFuncUser() gin.HandlerFunc {
 	if err := mw.MiddlewareInit(); err != nil {
 		return func(c *gin.Context) {
@@ -355,6 +367,42 @@ func (mw *GinJWTMiddleware) middlewareImplUser(c *gin.Context) {
 		c.Set("JWT_PAYLOAD", claims)
 		c.Set("userId", util.ToInt(id))
 		c.Set("user", user)
+	}
+
+	c.Next()
+}
+
+func (mw *GinJWTMiddleware) middlewareImplAdminUser(c *gin.Context) {
+	token, err := mw.parseToken(c)
+
+	if err != nil {
+		mw.unauthorized(c, http.StatusUnauthorized, mw.HTTPStatusMessageFunc(err, c))
+		return
+	}
+
+	if token != nil {
+		claims := token.Claims.(jwt.MapClaims)
+		id := mw.IdentityHandler(claims)
+
+		// Validate user id information
+		idInUint, convertedErr := strconv.Atoi(fmt.Sprintf("%v", id))
+		if convertedErr != nil {
+			mw.unauthorized(c, http.StatusForbidden, mw.HTTPStatusMessageFunc(ErrForbidden, c))
+			return
+		}
+
+		var admin model.AdminUser
+		model.DBInstance.First(&admin, idInUint)
+
+		if !mw.Authorizator(admin, c) {
+			mw.unauthorized(c, http.StatusForbidden, mw.HTTPStatusMessageFunc(ErrForbidden, c))
+			return
+		}
+
+		// Set & Return
+		c.Set("JWT_PAYLOAD", claims)
+		c.Set("adminId", util.ToInt(id))
+		c.Set("admin", admin)
 	}
 
 	c.Next()

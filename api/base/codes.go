@@ -65,4 +65,7 @@ const (
 	CodeCreateCommentFail                    = "CREATE_COMMENT_FAIL"
 	CodeReviewRequestedNotInClassroom        = "REVIEW_REQUESTED_NOT_IN_CLASSROOM"
 	CodeUserNotAnOwnerOfRequested            = "USER_NOT_AN_OWNER_OF_REQUESTED"
+
+	// Admin
+	CodeAdminUserIDNotExisted = "ADMIN_USER_ID_NOT_EXISTED"
 )

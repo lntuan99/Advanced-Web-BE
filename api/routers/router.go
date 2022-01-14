@@ -4,6 +4,7 @@ import (
 	api_jwt "advanced-web.hcmus/api/api-jwt"
 	"advanced-web.hcmus/api/base"
 	api_account "advanced-web.hcmus/api/routers/api-account"
+	api_admin "advanced-web.hcmus/api/routers/api-admin"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
 	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	api_notification "advanced-web.hcmus/api/routers/api-notification"
@@ -132,9 +133,12 @@ func Initialize() *gin.Engine {
 	}
 
 	adminRoute := routeVersion01.Group("admin")
-	adminRoute.Use(authMiddleware.MiddlewareFuncUser())
+	adminRoute.POST("/login", api_admin.HandlerLoginAdminAccount)
+	adminRoute.Use(authMiddleware.MiddlewareFuncAdminUser())
 	{
-
+		adminRoute.GET("/", api_admin.HandlerGetListAdminUser)
+		adminRoute.GET("/:id", api_admin.HandlerGetAdminUserByID)
+		adminRoute.POST("/", api_admin.HandlerCreateAdminUser)
 	}
 
 	return r
