@@ -70,7 +70,7 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 		}
 	}
 
-	var birthday *time.Time
+	var birthday = &time.Time{}
 	if updateUserProfileInfo.Birthday != 0 {
 		*birthday = time.Unix(updateUserProfileInfo.Birthday, 0)
 	} else {
