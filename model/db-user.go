@@ -41,7 +41,7 @@ type UserRes struct {
 	IdentityCard    string `json:"identityCard"`
 	Enabled         bool   `json:"enabled"`
 	ExpiredAt       int64  `json:"expiredAt"`
-	IsEmailVerified bool   `json:"IsEmailVerified"`
+	IsEmailVerified bool   `json:"isEmailVerified"`
 }
 
 func (user User) ToRes() UserRes {

@@ -71,6 +71,11 @@ func (student Student) GetAllGradeInClassroom(classroomID uint, isFinalized *boo
 			DBInstance.Create(&dbStudentGradeMapping)
 		}
 
+		// Find review requested id if existed
+		var dbReviewRequested GradeReviewRequested
+		DBInstance.First(&dbReviewRequested, "student_grade_mapping_id = ?", dbStudentGradeMapping.ID)
+		dbStudentGradeMapping.GradeReviewRequestedID = dbReviewRequested.ID
+
 		totalGrade += dbStudentGradeMapping.Point
 		maxTotalGrade += grade.MaxPoint
 		studentGradeMappingArray = append(studentGradeMappingArray, dbStudentGradeMapping)
