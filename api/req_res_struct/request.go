@@ -95,3 +95,9 @@ type PostCreateAdminUser struct {
 type PostMarkReadNotification struct {
 	NotificationID uint `json:"notificationId" binding:"required"`
 }
+
+type PostMapStudentCode struct {
+	UserID       uint   `json:"userId" binding:"required"`
+	StudentCode  string `json:"studentCode" binding:"required"`
+	IsCodeLocked bool   `json:"isCodeLocked" binding:"required"`
+}

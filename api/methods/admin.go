@@ -15,6 +15,12 @@ import (
 	"time"
 )
 
+//====================================================
+//====================================================
+//============ MANAGE ADMIN FUNCTIONS ================
+//====================================================
+//====================================================
+
 func MethodLoginAdminUser(c *gin.Context) (bool, string, interface{}) {
 	var loginAccountInfo req_res.PostLoginAccount
 	if err := c.ShouldBindJSON(&loginAccountInfo); err != nil {
@@ -180,6 +186,196 @@ func MethodCreateAdminUser(c *gin.Context) (bool, string, interface{}) {
 	return true, base.CodeSuccess, newAdminUser.ToRes()
 }
 
+//====================================================
+//====================================================
+//============= MANAGE USER FUNCTIONS ================
+//====================================================
+//====================================================
+
+func MethodGetListUser(c *gin.Context) (bool, string, interface{}) {
+	var dbInstance = model.DBInstance
+
+	var userArray = make([]model.User, 0)
+
+	var orderBy = "created_at ASC"
+	if strings.ToLower(c.Query("sort")) == "desc" {
+		orderBy = "created_at DESC"
+	}
+
+	var key = c.Query("key")
+	if !util.EmptyOrBlankString(key) {
+		formattedKeyword := util.RemoveAccent(util.TrimSpace(key))
+		formattedKeyword = "%" + strings.ToLower(formattedKeyword) + "%"
+		dbInstance = dbInstance.Where("f_unaccent(name) LIKE ? OR f_unaccent(email) LIKE ?", formattedKeyword, formattedKeyword)
+	}
+
+	dbInstance.
+		Order(orderBy).
+		Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
+		Limit(base.PageSizeLimit).
+		Find(&userArray)
+
+	var userResArray = make([]model.UserRes, 0)
+	for _, user := range userArray {
+		userResArray = append(userResArray, user.ToRes())
+	}
+
+	return true, base.CodeSuccess, userResArray
+}
+
+func MethodAdminGetUserByID(c *gin.Context) (bool, string, interface{}) {
+	userID := util.ToUint(c.Param("id"))
+	existedUser, _, user := model.User{}.FindUserByID(uint(userID))
+
+	if !existedUser {
+		return false, base.CodeUserNotExisted, nil
+	}
+
+	return true, base.CodeSuccess, user.ToRes()
+}
+
+func MethodAdminBanUserByID(c *gin.Context) (bool, string, interface{}) {
+	userID := util.ToUint(c.Param("id"))
+	existedUser, _, user := model.User{}.FindUserByID(uint(userID))
+
+	if !existedUser {
+		return false, base.CodeUserNotExisted, nil
+	}
+
+	if user.Enabled == false {
+		return false, base.CodeUserAlreadyBanned, nil
+	}
+
+	if err := model.DBInstance.Model(&user).
+		Updates(map[string]interface{}{
+			"enabled": false,
+		}).Error; err != nil {
+		return false, base.CodeBanUserFail, nil
+	}
+
+	return true, base.CodeSuccess, user.ToRes()
+}
+
+func MethodAdminUnBanUserByID(c *gin.Context) (bool, string, interface{}) {
+	userID := util.ToUint(c.Param("id"))
+	existedUser, _, user := model.User{}.FindUserByID(uint(userID))
+
+	if !existedUser {
+		return false, base.CodeUserNotExisted, nil
+	}
+
+	if user.Enabled == true {
+		return false, base.CodeUserAlreadyEnabled, nil
+	}
+
+	if err := model.DBInstance.Model(&user).
+		Updates(map[string]interface{}{
+			"enabled": true,
+		}).Error; err != nil {
+		return false, base.CodeUnBanUserFail, nil
+	}
+
+	return true, base.CodeSuccess, user.ToRes()
+}
+
+func MethodMapStudentCode(c *gin.Context) (bool, string, interface{}) {
+	var mapStudentCodeInfo req_res.PostMapStudentCode
+	if err := c.ShouldBind(&mapStudentCodeInfo); err != nil {
+		return false, base.CodeBadRequest, nil
+	}
+
+	existedUser, _, user := model.User{}.FindUserByID(mapStudentCodeInfo.UserID)
+
+	if !existedUser {
+		return false, base.CodeUserNotExisted, nil
+	}
+
+	err := model.DBInstance.Transaction(func(tx *gorm.DB) error {
+		_, _, existedUserCode := model.User{}.FindUserByCode(mapStudentCodeInfo.StudentCode)
+		if existedUserCode.ID > 0 {
+			err1 := tx.Model(&existedUserCode).
+				Updates(map[string]interface{}{
+					"code": nil,
+				}).Error
+
+			if err1 != nil {
+				return err1
+			}
+		}
+
+		err2 := tx.Model(&user).
+			Updates(map[string]interface{}{
+				"code":           mapStudentCodeInfo.StudentCode,
+				"is_code_locked": mapStudentCodeInfo.IsCodeLocked,
+			}).Error
+
+		if err2 != nil {
+			return err2
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, base.CodeMapStudentCodeFail, nil
+	}
+
+	return true, base.CodeSuccess, user.ToRes()
+}
+
+//====================================================
+//====================================================
+//========== MANAGE CLASSROOM FUNCTIONS ==============
+//====================================================
+//====================================================
+func MethodAdminGetListClassroom(c *gin.Context) (bool, string, interface{}) {
+	var dbInstance = model.DBInstance
+
+	var classroomArray = make([]model.Classroom, 0)
+
+	var orderBy = "created_at ASC"
+	if strings.ToLower(c.Query("sort")) == "desc" {
+		orderBy = "created_at DESC"
+	}
+
+	var key = c.Query("key")
+	if !util.EmptyOrBlankString(key) {
+		formattedKeyword := util.RemoveAccent(util.TrimSpace(key))
+		formattedKeyword = "%" + strings.ToLower(formattedKeyword) + "%"
+		dbInstance = dbInstance.Where("f_unaccent(name) LIKE ?", formattedKeyword)
+	}
+
+	dbInstance.
+		Order(orderBy).
+		Offset(base.GetIntQuery(c, "page") * base.PageSizeLimit).
+		Limit(base.PageSizeLimit).
+		Preload("Owner").
+		Find(&classroomArray)
+
+	var classroomResArray = make([]model.ClassroomResLite, 0)
+	for _, classroom := range classroomArray {
+		classroomResArray = append(classroomResArray, classroom.ToResLite())
+	}
+
+	return true, base.CodeSuccess, classroomResArray
+}
+
+func MethodAdminGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
+	classroomID := util.ToUint(c.Param("id"))
+	classroom := model.Classroom{}.FindClassroomByID(uint(classroomID))
+
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	return true, base.CodeSuccess, classroom.ToRes()
+}
+
+//====================================================
+//====================================================
+//============== PRIVATE FUNCTION ====================
+//====================================================
+//====================================================
 func generateAdminToken(admin model.AdminUser) req_res.RespondUserLogin {
 	result := req_res.RespondUserLogin{
 		Token:           "",

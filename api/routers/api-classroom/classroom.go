@@ -7,7 +7,7 @@ import (
 )
 
 func HandlerGetClassroomList(c *gin.Context) {
-	success, status, data := methods.MethodGetClassroomList(c)
+	success, status, data := methods.MethodGetListClassroom(c)
 
 	if !success {
 		base.ResponseError(c, status)

@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func MethodGetClassroomList(c *gin.Context) (bool, string, interface{}) {
+func MethodGetListClassroom(c *gin.Context) (bool, string, interface{}) {
 	var classroomArray = make([]model.Classroom, 0)
 	model.DBInstance.
 		Order("id ASC").
