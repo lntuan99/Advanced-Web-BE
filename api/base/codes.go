@@ -74,4 +74,9 @@ const (
 	CodeUnBanUserFail         = "UNBAN_USER_FAIL"
 	CodeUserAlreadyEnabled    = "USER_ALREADY_ENABLED"
 	CodeMapStudentCodeFail    = "MAP_STUDENT_CODE_FAIL"
+
+	// Notification
+	CodeNotificationIDNotExisted         = "NOTIFICATION_ID_NOT_EXISTED"
+	CodeUserNotReceiveThisNotificationID = "USER_NOT_RECEIVE_NOTIFICATION"
+	CodeMarkReadNotificationFail         = "MARK_READ_NOTIFICATION_FAIL"
 )

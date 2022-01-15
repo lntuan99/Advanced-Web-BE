@@ -47,12 +47,26 @@ func MethodMarkReadNotification(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeBadRequest, nil
 	}
 
+	var dbNotification model.Notification
+	model.DBInstance.First(&dbNotification, notificationIDInfo.NotificationID)
+	if dbNotification.ID == 0 {
+		return false, base.CodeNotificationIDNotExisted, nil
+	}
+
 	var dbNotificationMapping model.UserNotificationMapping
 	model.DBInstance.First(&dbNotificationMapping, "user_id = ? AND notification_id = ?", user.ID, notificationIDInfo.NotificationID)
 
-	/*if dbNotificationMapping.ID == 0 {
+	if err := model.DBInstance.
+		Model(&dbNotificationMapping).
+		Updates(map[string]interface{}{
+			"is_read": true,
+		}).Error; err != nil {
+		return false, base.CodeMarkReadNotificationFail, nil
+	}
+
+	if dbNotificationMapping.ID == 0 {
 		return false, base.CodeUserNotReceiveThisNotificationID, nil
-	}*/
+	}
 
 	return true, base.CodeSuccess, nil
 }
