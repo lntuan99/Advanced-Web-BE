@@ -21,9 +21,19 @@ type StudentRes struct {
 func (student Student) ToRes() StudentRes {
 	DBInstance.First(&student.User, "code = ?", student.Code)
 
+	if student.User.ID > 0 {
+		return StudentRes{
+			StudentID: student.ID,
+			UserRes:   student.User.ToRes(),
+		}
+	}
+
 	return StudentRes{
 		StudentID: student.ID,
-		UserRes:   student.User.ToRes(),
+		UserRes: UserRes{
+			Name: student.Name,
+			Code: student.Code,
+		},
 	}
 }
 

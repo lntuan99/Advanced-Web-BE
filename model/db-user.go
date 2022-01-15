@@ -26,10 +26,12 @@ type User struct {
 	Enabled         bool
 	ExpiredAt       *time.Time
 	IsEmailVerified bool        `gorm:"default:false"`
+	IsCodeLocked    bool        `gorm:"default:false"`
 	Classrooms      []Classroom `gorm:"many2many:user_classroom_mappings"`
 }
 
 type UserRes struct {
+	ID              uint   `json:"id"`
 	Username        string `json:"username"`
 	Name            string `json:"name"`
 	Code            string `json:"code"`
@@ -42,6 +44,7 @@ type UserRes struct {
 	Enabled         bool   `json:"enabled"`
 	ExpiredAt       int64  `json:"expiredAt"`
 	IsEmailVerified bool   `json:"isEmailVerified"`
+	IsCodeLocked    bool   `json:"isCodeLocked"`
 }
 
 func (user User) ToRes() UserRes {
@@ -59,17 +62,20 @@ func (user User) ToRes() UserRes {
 	DBInstance.First(&userAccount, "user_id = ?", user.ID)
 
 	return UserRes{
-		Username:     userAccount.Username,
-		Name:         user.Name,
-		Code:         user.Code,
-		Email:        user.Email,
-		Phone:        user.Phone,
-		Birthday:     birthday,
-		Gender:       user.Gender,
-		Avatar:       util.SubUrlToFullUrl(user.Avatar),
-		IdentityCard: user.IdentityCard,
-		Enabled:      user.Enabled,
-		ExpiredAt:    expiredAt,
+		ID:              user.ID,
+		Username:        userAccount.Username,
+		Name:            user.Name,
+		Code:            user.Code,
+		Email:           user.Email,
+		Phone:           user.Phone,
+		Birthday:        birthday,
+		Gender:          user.Gender,
+		Avatar:          util.SubUrlToFullUrl(user.Avatar),
+		IdentityCard:    user.IdentityCard,
+		Enabled:         user.Enabled,
+		IsEmailVerified: user.IsEmailVerified,
+		IsCodeLocked:    user.IsCodeLocked,
+		ExpiredAt:       expiredAt,
 	}
 }
 
