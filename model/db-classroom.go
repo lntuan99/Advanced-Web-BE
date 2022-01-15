@@ -43,7 +43,23 @@ type ClassroomRes struct {
 	TeacherResArray   []UserRes    `json:"teacherArray"`
 }
 
+type ClassroomResLite struct {
+	ID                uint   `json:"id"`
+	OwnerName         string `json:"ownerName"`
+	OwnerAvatar       string `json:"ownerAvatar"`
+	Name              string `json:"name"`
+	CoverImageURL     string `json:"coverImageUrl"`
+	Code              string `json:"code"`
+	InviteTeacherCode string `json:"inviteTeacherCode"`
+	InviteStudentCode string `json:"inviteStudentCode"`
+	Description       string `json:"description"`
+}
+
 func (classroom Classroom) ToRes() ClassroomRes {
+	if classroom.Owner.ID == 0 {
+		DBInstance.First(&classroom.Owner, classroom.OwnerID)
+	}
+
 	if len(classroom.StudentArray) == 0 {
 		classroom.GetListStudent()
 	}
@@ -74,6 +90,24 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		Description:       classroom.Description,
 		StudentResArray:   studentResArray,
 		TeacherResArray:   teacherResArray,
+	}
+}
+
+func (classroom Classroom) ToResLite() ClassroomResLite {
+	if classroom.Owner.ID == 0 {
+		DBInstance.First(&classroom.Owner, classroom.OwnerID)
+	}
+
+	return ClassroomResLite{
+		ID:                classroom.ID,
+		OwnerName:         classroom.Owner.Name,
+		OwnerAvatar:       util.SubUrlToFullUrl(classroom.Owner.Avatar),
+		Name:              classroom.Name,
+		CoverImageURL:     util.SubUrlToFullUrl(classroom.CoverImageURL),
+		Code:              classroom.Code,
+		InviteTeacherCode: classroom.InviteTeacherCode,
+		InviteStudentCode: classroom.InviteStudentCode,
+		Description:       classroom.Description,
 	}
 }
 

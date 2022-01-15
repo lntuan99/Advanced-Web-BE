@@ -5,6 +5,8 @@ import (
 	"advanced-web.hcmus/api/base"
 	api_account "advanced-web.hcmus/api/routers/api-account"
 	api_admin "advanced-web.hcmus/api/routers/api-admin"
+	api_admin_classroom "advanced-web.hcmus/api/routers/api-admin/api-admin-classroom"
+	api_admin_user "advanced-web.hcmus/api/routers/api-admin/api-admin-user"
 	api_classroom "advanced-web.hcmus/api/routers/api-classroom"
 	api_grade "advanced-web.hcmus/api/routers/api-grade"
 	api_notification "advanced-web.hcmus/api/routers/api-notification"
@@ -139,6 +141,20 @@ func Initialize() *gin.Engine {
 		adminRoute.GET("/", api_admin.HandlerGetListAdminUser)
 		adminRoute.GET("/:id", api_admin.HandlerGetAdminUserByID)
 		adminRoute.POST("/", api_admin.HandlerCreateAdminUser)
+
+		manageUserRoute := adminRoute.Group("user")
+		{
+			manageUserRoute.GET("/", api_admin_user.HandlerGetListUser)
+			manageUserRoute.GET("/:id", api_admin_user.HandlerAdminGetUserByID)
+			manageUserRoute.POST("/ban/:id", api_admin_user.HandlerAdminBanUserByID)
+			manageUserRoute.POST("/map-student-code", api_admin_user.HandlerMapStudentCode)
+		}
+
+		manageClassroomRoute := adminRoute.Group("classroom")
+		{
+			manageClassroomRoute.GET("/", api_admin_classroom.HandlerAdminGetListClassroom)
+			manageClassroomRoute.GET("/:id", api_admin_classroom.HandlerAdminGetClassroomByID)
+		}
 	}
 
 	return r

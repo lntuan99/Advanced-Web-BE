@@ -79,8 +79,16 @@ func MethodUpdateUserProfile(c *gin.Context) (bool, string, interface{}) {
 
 	existedAccountUsername.Username = updateUserProfileInfo.Username
 	user.Name = updateUserProfileInfo.Name
-	user.Code = updateUserProfileInfo.Code
+
+	if user.IsCodeLocked == false && util.EmptyOrBlankString(updateUserProfileInfo.Code) {
+		user.Code = updateUserProfileInfo.Code
+	}
+
+	if user.Email != updateUserProfileInfo.Email {
+		user.IsEmailVerified = false
+	}
 	user.Email = updateUserProfileInfo.Email
+
 	user.Phone = updateUserProfileInfo.Phone
 	user.Gender = updateUserProfileInfo.Gender
 	user.Birthday = birthday

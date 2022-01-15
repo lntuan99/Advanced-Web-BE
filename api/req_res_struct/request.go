@@ -91,3 +91,9 @@ type PostCreateAdminUser struct {
 	Email          string `form:"email" json:"email" binding:"required"`
 	Phone          string `form:"phone" json:"phone"`
 }
+
+type PostMapStudentCode struct {
+	UserID       uint   `json:"userId" binding:"required"`
+	StudentCode  string `json:"studentCode" binding:"required"`
+	IsCodeLocked bool   `json:"isCodeLocked" binding:"required"`
+}

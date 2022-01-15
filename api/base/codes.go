@@ -38,6 +38,7 @@ const (
 	CodeInvalidVerifyCode             = "INVALID_VERIFY_CODE"
 	CodeVerifyEmailFail               = "VERIFY_EMAIL_FAIL"
 	CodeUpdatePasswordFail            = "UPDATE_PASSWORD_FAIL"
+	CodeUserNotExisted                = "USER_ID_NOT_EXISTED"
 
 	// Classroom
 	CodeCreateClassroomFail                 = "CREATE_CLASSROOM_FAIL"
@@ -68,4 +69,9 @@ const (
 
 	// Admin
 	CodeAdminUserIDNotExisted = "ADMIN_USER_ID_NOT_EXISTED"
+	CodeUserAlreadyBanned     = "USER_ALREADY_BANNED"
+	CodeBanUserFail           = "BAN_USER_FAIL"
+	CodeUnBanUserFail         = "UNBAN_USER_FAIL"
+	CodeUserAlreadyEnabled    = "USER_ALREADY_ENABLED"
+	CodeMapStudentCodeFail    = "MAP_STUDENT_CODE_FAIL"
 )
