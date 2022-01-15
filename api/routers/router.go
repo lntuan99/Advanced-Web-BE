@@ -91,6 +91,7 @@ func Initialize() *gin.Engine {
 		gradeStructureRoute := classroomRoute.Group("grade")
 		{
 			gradeStructureRoute.GET("/:id", api_grade.HandlerGetListGradeByClassroomId)
+			gradeStructureRoute.GET("/review-requested/:id", api_grade.HandlerGetListGradeReviewRequestedByClassroomId)
 			gradeStructureRoute.POST("/add", api_grade.HandlerCreateGrade)
 
 			// old: POST, /update

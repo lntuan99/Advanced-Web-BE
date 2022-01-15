@@ -135,3 +135,13 @@ func HandlerCreateCommentInGradeReviewRequested(c *gin.Context) {
 		base.ResponseResult(c, data)
 	}
 }
+
+func HandlerGetListGradeReviewRequestedByClassroomId(c *gin.Context) {
+	success, status, data := methods.MethodGetListGradeReviewRequestedByClassroomId(c)
+
+	if !success {
+		base.ResponseError(c, status)
+	} else {
+		base.ResponseResult(c, data)
+	}
+}

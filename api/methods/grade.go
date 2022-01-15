@@ -693,3 +693,38 @@ func MethodCreateCommentInGradeReviewRequested(c *gin.Context) (bool, string, in
 
 	return true, base.CodeSuccess, newComment.ToRes()
 }
+
+func MethodGetListGradeReviewRequestedByClassroomId(c *gin.Context) (bool, string, interface{}) {
+	userObj, _ := c.Get("user")
+	user := userObj.(model.User)
+
+	classroomID := util.ToUint(c.Param("id"))
+
+	// Validate classroom
+	var classroom = model.Classroom{}.FindClassroomByID(uint(classroomID))
+	if classroom.ID == 0 {
+		return false, base.CodeClassroomIDNotExisted, nil
+	}
+
+	// validate user is a teacher in classroom
+	ok, _ := MiddlewareImplementUserIsATeacherInClassroom(user.ID, classroom.ID)
+	if !ok {
+		return false, base.CodeBadRequest, nil
+	}
+
+	// Validate grade review requested in classroom
+	var gradeReviewRequestedArray = make([]model.GradeReviewRequested, 0)
+	model.DBInstance.
+		Preload("Comments").
+		Preload("StudentGradeMapping.Student").
+		Preload("StudentGradeMapping.Grade").
+		Find(&gradeReviewRequestedArray)
+
+	var gradeReviewRequestedResArray = make([]model.GradeReviewRequestedRes, 0)
+
+	for _, review := range gradeReviewRequestedArray {
+		gradeReviewRequestedResArray = append(gradeReviewRequestedResArray, review.ToRes())
+	}
+
+	return true, base.CodeSuccess, gradeReviewRequestedResArray
+}
