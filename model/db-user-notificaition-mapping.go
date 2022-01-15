@@ -8,4 +8,5 @@ type UserNotificationMapping struct {
 	User           User
 	NotificationID uint `gorm:"unique_index:user_and_notification_in_mapping"`
 	Notification   Notification
+	IsRead         bool `gorm:"default:false"`
 }

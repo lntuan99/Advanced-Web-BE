@@ -91,3 +91,7 @@ type PostCreateAdminUser struct {
 	Email          string `form:"email" json:"email" binding:"required"`
 	Phone          string `form:"phone" json:"phone"`
 }
+
+type PostMarkReadNotification struct {
+	NotificationID uint `json:"notificationId" binding:"required"`
+}
