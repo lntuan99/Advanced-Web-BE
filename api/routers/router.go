@@ -146,7 +146,7 @@ func Initialize() *gin.Engine {
 
 		manageUserRoute := adminRoute.Group("user")
 		{
-			manageUserRoute.GET("/", api_admin_user.HandlerGetListUser)
+			manageUserRoute.GET("", api_admin_user.HandlerGetListUser)
 			manageUserRoute.GET("/:id", api_admin_user.HandlerAdminGetUserByID)
 			manageUserRoute.POST("/ban/:id", api_admin_user.HandlerAdminBanUserByID)
 			manageUserRoute.POST("/map-student-code", api_admin_user.HandlerMapStudentCode)
@@ -154,7 +154,7 @@ func Initialize() *gin.Engine {
 
 		manageClassroomRoute := adminRoute.Group("classroom")
 		{
-			manageClassroomRoute.GET("/", api_admin_classroom.HandlerAdminGetListClassroom)
+			manageClassroomRoute.GET("", api_admin_classroom.HandlerAdminGetListClassroom)
 			manageClassroomRoute.GET("/:id", api_admin_classroom.HandlerAdminGetClassroomByID)
 		}
 	}
