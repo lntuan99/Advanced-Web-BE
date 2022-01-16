@@ -32,6 +32,7 @@ type User struct {
 
 type UserRes struct {
 	ID              uint   `json:"id"`
+	CreatedAt       int64  `json:"createdAt"`
 	Username        string `json:"username"`
 	Name            string `json:"name"`
 	Code            string `json:"code"`
@@ -63,6 +64,7 @@ func (user User) ToRes() UserRes {
 
 	return UserRes{
 		ID:              user.ID,
+		CreatedAt:       user.CreatedAt.Unix(),
 		Username:        userAccount.Username,
 		Name:            user.Name,
 		Code:            user.Code,
