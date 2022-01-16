@@ -140,7 +140,7 @@ func Initialize() *gin.Engine {
 	adminRoute.POST("/login", api_admin.HandlerLoginAdminAccount)
 	adminRoute.Use(authMiddleware.MiddlewareFuncAdminUser())
 	{
-		adminRoute.GET("/", api_admin.HandlerGetListAdminUser)
+		adminRoute.GET("", api_admin.HandlerGetListAdminUser)
 		adminRoute.GET("/:id", api_admin.HandlerGetAdminUserByID)
 		adminRoute.POST("/", api_admin.HandlerCreateAdminUser)
 
