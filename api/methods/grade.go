@@ -594,6 +594,7 @@ func MethodMakeFinalDecisionGradeReviewRequested(c *gin.Context) (bool, string, 
 
 	// Mapping review requested data
 	dbGradeReviewRequested.FinalPoint = &gradeReviewRequestedInfo.FinalPoint
+	dbGradeReviewRequested.StudentGradeMapping.Point = gradeReviewRequestedInfo.FinalPoint
 	dbGradeReviewRequested.IsProcessed = true
 
 	model.DBInstance.Save(&dbGradeReviewRequested)
