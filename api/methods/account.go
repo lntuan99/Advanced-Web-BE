@@ -151,7 +151,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		model.DBInstance.Create(&verifyCode)
 
 		// Generate verify link
-		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode.Code)
+		verifyLink := fmt.Sprintf("%v/verify-email?code=%v", config.Config.FeDomain, verifyCode.Code)
 
 		type TemplateData struct {
 			URL string
