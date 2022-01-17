@@ -9,6 +9,7 @@ import (
 	"advanced-web.hcmus/services/smtp"
 	"advanced-web.hcmus/util"
 	"fmt"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"path/filepath"
