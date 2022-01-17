@@ -716,6 +716,7 @@ func MethodGetListGradeReviewRequestedByClassroomId(c *gin.Context) (bool, strin
 	// Validate grade review requested in classroom
 	var gradeReviewRequestedArray = make([]model.GradeReviewRequested, 0)
 	model.DBInstance.
+		Joins("student_grade_mappings on student_grade_mappings.grade_id = grades.id AND grades.classroom_id = ?", classroom.ID).
 		Preload("Comments").
 		Preload("StudentGradeMapping.Student").
 		Preload("StudentGradeMapping.Grade").
