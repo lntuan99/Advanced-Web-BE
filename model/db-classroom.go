@@ -30,6 +30,7 @@ type Classroom struct {
 
 type ClassroomRes struct {
 	ID                uint         `json:"id"`
+	CreatedAt         int64        `json:"createdAt"`
 	JWTType           uint         `json:"jwtType"`
 	OwnerName         string       `json:"ownerName"`
 	OwnerAvatar       string       `json:"ownerAvatar"`
@@ -45,6 +46,7 @@ type ClassroomRes struct {
 
 type ClassroomResLite struct {
 	ID                uint   `json:"id"`
+	CreatedAt         int64  `json:"createdAt"`
 	OwnerName         string `json:"ownerName"`
 	OwnerAvatar       string `json:"ownerAvatar"`
 	Name              string `json:"name"`
@@ -80,6 +82,7 @@ func (classroom Classroom) ToRes() ClassroomRes {
 
 	return ClassroomRes{
 		ID:                classroom.ID,
+		CreatedAt:         classroom.CreatedAt.Unix(),
 		OwnerName:         classroom.Owner.Name,
 		OwnerAvatar:       util.SubUrlToFullUrl(classroom.Owner.Avatar),
 		Name:              classroom.Name,
@@ -100,6 +103,7 @@ func (classroom Classroom) ToResLite() ClassroomResLite {
 
 	return ClassroomResLite{
 		ID:                classroom.ID,
+		CreatedAt:         classroom.CreatedAt.Unix(),
 		OwnerName:         classroom.Owner.Name,
 		OwnerAvatar:       util.SubUrlToFullUrl(classroom.Owner.Avatar),
 		Name:              classroom.Name,
