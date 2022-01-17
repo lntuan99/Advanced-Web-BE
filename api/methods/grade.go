@@ -727,7 +727,7 @@ func MethodGetListGradeReviewRequestedByClassroomId(c *gin.Context) (bool, strin
 
 	var gradeReviewRequestedArray = make([]model.GradeReviewRequested, 0)
 	model.DBInstance.
-		Joins("INNER JOIN student_grade_mappings on student_grade_mappings.grade_id IN (?))", gradeIDs).
+		Joins("INNER JOIN student_grade_mappings on student_grade_mappings.grade_id IN (?)", gradeIDs).
 		Preload("Comments").
 		Preload("StudentGradeMapping.Student").
 		Preload("StudentGradeMapping.Grade").
