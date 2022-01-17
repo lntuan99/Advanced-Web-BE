@@ -9,7 +9,6 @@ import (
 	"advanced-web.hcmus/services/smtp"
 	"advanced-web.hcmus/util"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"path/filepath"
@@ -151,7 +150,7 @@ func MethodRegisterAccount(c *gin.Context) (bool, string, interface{}) {
 		model.DBInstance.Create(&verifyCode)
 
 		// Generate verify link
-		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode)
+		verifyLink := fmt.Sprintf("%v/verify?code=%v", config.Config.FeDomain, verifyCode.Code)
 
 		type TemplateData struct {
 			URL string
