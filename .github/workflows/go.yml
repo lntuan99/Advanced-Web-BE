@@ -20,7 +20,7 @@ jobs:
 
       - name: Build
         run: |
-          cd go/advanced-web/BE-project/mid-final/Advanced-Web-BE
+          cd /root/go/advanced-web/BE-project/mid-final/Advanced-Web-BE
           git pull origin master
           go build main.go
 
