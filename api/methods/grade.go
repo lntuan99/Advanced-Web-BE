@@ -712,10 +712,22 @@ func MethodGetListGradeReviewRequestedByClassroomId(c *gin.Context) (bool, strin
 	if !ok {
 		return false, base.CodeBadRequest, nil
 	}
+	//Select grades.id from grades where student_grade_mappings.grade_id = grades.id AND grades.classroom_id = 1
 
-	// Validate grade review requested in classroom
+	// Find all grades in classroom
+	var grades = make([]model.Grade, 0)
+	model.DBInstance.
+		Where("classroom_id = ?", classroom.ID).
+		Find(&grades)
+
+	var gradeIDs = make([]uint, 0)
+	for _, grade := range grades {
+		gradeIDs = append(gradeIDs, grade.ID)
+	}
+
 	var gradeReviewRequestedArray = make([]model.GradeReviewRequested, 0)
 	model.DBInstance.
+		Joins("INNER JOIN student_grade_mappings on grade_review_requesteds.student_grade_mapping_id = student_grade_mappings.id AND student_grade_mappings.grade_id IN (?)", gradeIDs).
 		Preload("Comments").
 		Preload("StudentGradeMapping.Student").
 		Preload("StudentGradeMapping.Grade").
