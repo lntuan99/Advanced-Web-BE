@@ -9,17 +9,24 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: |
+          screen -x 953264
+          git pull origin master
+          go build main.go
 
-    - name: Test
-      run: go test -v ./...
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Restart service
+        run: systemctl restart advanced-web-project-api

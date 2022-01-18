@@ -6,5 +6,5 @@ import (
 )
 
 func HandlerStatus(c *gin.Context) {
-	base.ResponseResult(c, gin.H{"status": "ok"})
+	base.ResponseResult(c, gin.H{"status": "hello HCMUS"})
 }
