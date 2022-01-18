@@ -176,10 +176,11 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
 	var newMapping = model.UserClassroomMapping{
 		ClassroomID: newClassroom.ID,
 		UserID:      user.ID,
-		UserRole:    model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER),
 		UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
 	}
 	model.DBInstance.Create(&newMapping)
+
+	newMapping.UserRole = model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER)
 
 	return true, base.CodeSuccess, newClassroom.ToRes(newMapping)
 }
