@@ -57,7 +57,7 @@ type ClassroomResLite struct {
 	Description       string `json:"description"`
 }
 
-func (classroom Classroom) ToRes() ClassroomRes {
+func (classroom Classroom) ToRes(mapping UserClassroomMapping) ClassroomRes {
 	if classroom.Owner.ID == 0 {
 		DBInstance.First(&classroom.Owner, classroom.OwnerID)
 	}
@@ -93,6 +93,7 @@ func (classroom Classroom) ToRes() ClassroomRes {
 		Description:       classroom.Description,
 		StudentResArray:   studentResArray,
 		TeacherResArray:   teacherResArray,
+		JWTType:           mapping.UserRole.JWTType,
 	}
 }
 

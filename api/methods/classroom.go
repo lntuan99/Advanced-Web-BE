@@ -28,7 +28,7 @@ func MethodGetListClassroom(c *gin.Context) (bool, string, interface{}) {
 
 	var classroomResArray = make([]model.ClassroomRes, 0)
 	for _, classroom := range classroomArray {
-		classroomResArray = append(classroomResArray, classroom.ToRes())
+		classroomResArray = append(classroomResArray, classroom.ToRes(model.UserClassroomMapping{}))
 	}
 
 	return true, base.CodeSuccess, classroomResArray
@@ -47,6 +47,7 @@ func GetListClassroomByJWTType(c *gin.Context) (bool, string, interface{}) {
 			Order("id ASC").
 			Offset(base.GetIntQuery(c, "page")*base.PageSizeLimit).
 			Limit(base.PageSizeLimit).
+			Preload("UserRole").
 			Preload("Classroom").
 			Preload("Classroom.Owner").
 			Where("user_id = ?", user.ID).
@@ -58,6 +59,7 @@ func GetListClassroomByJWTType(c *gin.Context) (bool, string, interface{}) {
 			Order("id ASC").
 			Offset(base.GetIntQuery(c, "page")*base.PageSizeLimit).
 			Limit(base.PageSizeLimit).
+			Preload("UserRole").
 			Preload("Classroom").
 			Preload("Classroom.Owner").
 			Where("user_id = ?", user.ID).
@@ -68,7 +70,7 @@ func GetListClassroomByJWTType(c *gin.Context) (bool, string, interface{}) {
 
 	var classroomResArray = make([]model.ClassroomRes, 0)
 	for _, mapping := range mappingArray {
-		classroomResArray = append(classroomResArray, mapping.Classroom.ToRes())
+		classroomResArray = append(classroomResArray, mapping.Classroom.ToRes(mapping))
 	}
 
 	return true, base.CodeSuccess, classroomResArray
@@ -89,7 +91,7 @@ func GetListClassroomOwnedByUser(c *gin.Context) (bool, string, interface{}) {
 	var classroomResArray = make([]model.ClassroomRes, 0)
 	for _, classroom := range classroomArray {
 		classroom.Owner = user
-		classroomResArray = append(classroomResArray, classroom.ToRes())
+		classroomResArray = append(classroomResArray, classroom.ToRes(model.UserClassroomMapping{}))
 	}
 
 	return true, base.CodeSuccess, classroomResArray
@@ -115,7 +117,7 @@ func MethodGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 	classroom.GetListStudent()
 	classroom.TeacherArray = classroom.GetListUserByJWTType(model.JWT_TYPE_TEACHER)
 
-	classroomRes := classroom.ToRes()
+	classroomRes := classroom.ToRes(mapping)
 	classroomRes.JWTType = mapping.UserRole.JWTType
 
 	return true, base.CodeSuccess, classroomRes
@@ -174,11 +176,12 @@ func MethodCreateClassroom(c *gin.Context) (bool, string, interface{}) {
 	var newMapping = model.UserClassroomMapping{
 		ClassroomID: newClassroom.ID,
 		UserID:      user.ID,
+		UserRole:    model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER),
 		UserRoleID:  model.UserRole{}.GetRoleByJWTType(model.JWT_TYPE_TEACHER).ID,
 	}
 	model.DBInstance.Create(&newMapping)
 
-	return true, base.CodeSuccess, newClassroom.ToRes()
+	return true, base.CodeSuccess, newClassroom.ToRes(newMapping)
 }
 
 func MethodJoinClassroom(c *gin.Context) (bool, string, interface{}) {

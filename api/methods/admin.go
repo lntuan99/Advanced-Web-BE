@@ -7,7 +7,7 @@ import (
 	"advanced-web.hcmus/model"
 	"advanced-web.hcmus/util"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"path/filepath"
@@ -368,7 +368,7 @@ func MethodAdminGetClassroomByID(c *gin.Context) (bool, string, interface{}) {
 		return false, base.CodeClassroomIDNotExisted, nil
 	}
 
-	return true, base.CodeSuccess, classroom.ToRes()
+	return true, base.CodeSuccess, classroom.ToRes(model.UserClassroomMapping{})
 }
 
 //====================================================
